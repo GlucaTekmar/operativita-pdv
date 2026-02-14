@@ -118,7 +118,7 @@ if not st.session_state.anagrafica.empty:
 # --- AREA AMMINISTRATORE NASCOSTA ---
 admin_pass = st.text_input("Accesso amministratore", type="password")
 
-if admin_pass == "admin2026":
+if admin_pass == "GianAri2026":
 
     st.subheader("1. Caricamento Anagrafica")
     up_anagrafica = st.file_uploader(
@@ -162,3 +162,4 @@ if admin_pass == "admin2026":
             st.session_state.conferme = []
             save_data()
             st.rerun()
+
