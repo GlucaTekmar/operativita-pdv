@@ -32,9 +32,9 @@ creds = Credentials.from_service_account_info(
 
 client = gspread.authorize(creds)
 
-SPREADSHEET_NAME = "11o5dTHZBaeWS0N2crJyGqNbOsIPnLWzIu9q9snYw9hI"
+SPREADSHEET_NAME = "TEST_APP"
 
-sheet = client.open_by_key(SPREADSHEET_NAME)
+sheet = client.open(SPREADSHEET_NAME)
 
 anagrafica_ws = sheet.worksheet("ANAGRAFICA")
 messaggi_ws = sheet.worksheet("MESSAGGI")
@@ -183,6 +183,7 @@ else:
 
     else:
         st.warning("Inserire password valida")
+
 
 
 
