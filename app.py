@@ -1,165 +1,185 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import gspread
+from google.oauth2.service_account import Credentials
 import os
-import pickle
 
-# --- CONFIGURAZIONE DATABASE E PERSISTENZA ---
-DB_FILE = "database_finale.pkl"
+st.set_page_config(layout="wide")
 
-def save_data():
-    data = {
-        'messaggi': st.session_state.messaggi,
-        'anagrafica': st.session_state.anagrafica,
-        'conferme': st.session_state.conferme
-    }
-    with open(DB_FILE, 'wb') as f:
-        pickle.dump(data, f)
-
-def load_data():
-    if os.path.exists(DB_FILE):
-        with open(DB_FILE, 'rb') as f:
-            return pickle.load(f)
-    return None
-
-# Inizializzazione dati
-saved = load_data()
-if 'messaggi' not in st.session_state:
-    st.session_state.messaggi = saved['messaggi'] if saved else []
-if 'anagrafica' not in st.session_state:
-    st.session_state.anagrafica = saved['anagrafica'] if saved else pd.DataFrame(columns=['Codice', 'Insegna', 'Città'])
-if 'conferme' not in st.session_state:
-    st.session_state.conferme = saved['conferme'] if saved else []
-
-# --- STILE GRAFICO PERSONALIZZATO ---
+# ---------- STILE ----------
 st.markdown("""
 <style>
-.stApp { background-color: #E30613; }
-h1, h2, h3, p, label, .stMarkdown { color: white !important; }
-.stButton>button { 
-    background-color: black !important; 
-    color: white !important; 
-    width: 100%; 
-    border: 1px solid white;
-    font-weight: bold;
-}
-.stSelectbox div[data-baseweb="select"] { background-color: white !important; }
-.msg-container { 
-    background-color: white; 
-    color: black !important; 
-    padding: 20px; 
-    border-radius: 10px; 
-    margin-bottom: 15px; 
-    border: 3px solid #000;
-}
-.msg-title { 
-    color: #E30613 !important; 
-    font-weight: bold; 
-    font-size: 22px; 
-    border-bottom: 2px solid #eee; 
-    margin-bottom: 10px; 
-}
-.msg-body { color: black !important; line-height: 1.6; }
-.msg-body * { color: black !important; }
+body {background-color:#E30613;}
+.block-container {padding-top:1rem;}
+h1, h2, h3, h4, h5, h6, p, label {color:white;}
 </style>
 """, unsafe_allow_html=True)
 
-# --- INTERFACCIA UTENTE (PDV) ---
-if os.path.exists("logo.png"):
-    st.image("logo.png", width=250)
-else:
-    st.title("🔴 EDICOLE - OPERATIVITÀ")
+# ---------- LOGO ----------
+st.image("logo.png", width=200)
 
-st.subheader("SELEZIONA IL TUO PDV")
-st.caption("Digita le prime lettere della città per trovare il tuo PDV")
+# ---------- GOOGLE SHEETS CONNECTION ----------
+scope = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
+]
 
-if not st.session_state.anagrafica.empty:
-    df = st.session_state.anagrafica
-    opzioni = df['Codice'].astype(str) + " - " + df['Insegna'] + " (" + df['Città'] + ")"
-    scelta = st.selectbox("Cerca il tuo PDV:", ["Seleziona..."] + list(opzioni))
-    
-    if scelta != "Seleziona...":
-        codice_utente = scelta.split(" - ")[0].strip()
-        oggi = datetime.now().date()
-        
-        validi = [
-            m for m in st.session_state.messaggi
-            if codice_utente in m['target'] and m['inizio'] <= oggi <= m['fine']
-        ]
-        
-        if validi:
-            for i, m in enumerate(validi):
-                with st.container():
-                    st.markdown(f"""
-                    <div class="msg-container">
-                        <div class="msg-title">{m['titolo']}</div>
-                        <div class="msg-body">{m['testo']}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
+creds = Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"],
+    scopes=scope
+)
 
-                    st.markdown("**Conferma di Lettura e di Presenza sul PDV**")
-                    
-                    if st.button(f"CONFERMA LETTURA: {m['titolo']}", key=f"conf_{i}"):
-                        st.session_state.conferme.append({
-                            'Data_Ora': datetime.now().strftime("%d/%m/%Y %H:%M"),
-                            'PDV': codice_utente,
-                            'Titolo_Messaggio': m['titolo']
-                        })
-                        save_data()
-                        st.success("Lettura registrata con successo!")
-            
-            st.write("---")
-            st.link_button("TORNA ALLA HOME APP", "https://eu.jotform.com/it/app/build/253605296903360")
-            
-        else:
-            st.info("Per questo PDV questa mattina NON sono previste Promo e/o attività particolari rispetto al solito. Buon lavoro")
-            st.link_button("TORNA ALLA HOME APP", "https://eu.jotform.com/it/app/build/253605296903360")
+client = gspread.authorize(creds)
 
-# --- AREA AMMINISTRATORE NASCOSTA ---
-admin_pass = st.text_input("Accesso amministratore", type="password")
+SPREADSHEET_NAME = "OPERATIVITA"
 
-if admin_pass == "GianAri2026":
+sheet = client.open(SPREADSHEET_NAME)
 
-    st.subheader("1. Caricamento Anagrafica")
-    up_anagrafica = st.file_uploader(
-        "Carica Excel PDV (Codice, Insegna, Città)",
-        type=['xlsx']
+anagrafica_ws = sheet.worksheet("ANAGRAFICA")
+messaggi_ws = sheet.worksheet("MESSAGGI")
+conferme_ws = sheet.worksheet("CONFERME")
+
+anagrafica = pd.DataFrame(anagrafica_ws.get_all_records())
+messaggi = pd.DataFrame(messaggi_ws.get_all_records())
+
+oggi = datetime.now().date()
+
+# =========================================================
+# 🔒 MODALITÀ ADMIN NASCOSTA
+# =========================================================
+
+query = st.query_params
+
+admin_mode = False
+if "admin" in query and query["admin"] == "1":
+    admin_mode = True
+
+# =========================================================
+# 🔵 AREA DIPENDENTI
+# =========================================================
+
+if not admin_mode:
+
+    st.markdown("## SELEZIONA IL TUO PDV")
+    st.markdown("### **CERCA IL TUO PDV:**")
+
+    anagrafica["Display"] = (
+        anagrafica["Codice"].astype(str)
+        + " - "
+        + anagrafica["Insegna"]
+        + " ("
+        + anagrafica["Città"]
+        + ")"
     )
-    if up_anagrafica:
-        st.session_state.anagrafica = pd.read_excel(up_anagrafica)
-        save_data()
-        st.success("Anagrafica aggiornata!")
 
-    st.subheader("2. Nuova Indicazione")
-    with st.form("form_messaggio", clear_on_submit=True):
-        tit = st.text_input("Titolo dell'indicazione")
-        txt = st.text_area("Testo (supporta tag HTML)")
-        c1, c2 = st.columns(2)
-        d_ini = c1.date_input("Inizio Validità")
-        d_fin = c2.date_input("Fine Validità")
-        pdv_target = st.text_area("Incolla Codici PDV (separati da virgola o invio)")
-        
-        if st.form_submit_button("PUBBLICA INDICAZIONE"):
-            lista_target = [
+    pdv = st.selectbox(
+        "",
+        anagrafica["Display"]
+    )
+
+    st.markdown(
+        "<p style='font-size:14px'><b>Digita le prime lettere della città per trovare il tuo PDV</b></p>",
+        unsafe_allow_html=True
+    )
+
+    codice_pdv = pdv.split(" - ")[0]
+
+    messaggi_attivi = messaggi[
+        (messaggi["ID"].astype(str) == codice_pdv)
+    ]
+
+    # =====================================================
+    # SE ESISTE INDICAZIONE OPERATIVA
+    # =====================================================
+
+    if not messaggi_attivi.empty:
+
+        msg = messaggi_attivi.iloc[0]
+
+        st.markdown(f"""
+        <div style='background:white;color:black;padding:20px;border-radius:10px'>
+        <h3>{msg['Titolo']}</h3>
+        <p>{msg['Testo']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("### Conferma di Lettura e di Presenza sul PDV")
+
+        lettura = st.checkbox("da fleggare - CONFERMA DI LETTURA INDICAZIONE")
+        presenza = st.checkbox("da fleggare - CONFERMA DI PRESENZA SUL PDV")
+
+        if lettura and presenza:
+            conferme_ws.append_row([
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                codice_pdv,
+                msg["Titolo"]
+            ])
+            st.success("Lettura registrata con successo!")
+
+    # =====================================================
+    # SE NON ESISTE INDICAZIONE
+    # =====================================================
+
+    else:
+
+        st.markdown("""
+        <div style='background:white;color:black;padding:20px;border-radius:10px'>
+        <b>PER QUESTO PDV QUESTA MATTINA NON SONO PREVISTE PROMO E/O ATTIVITÀ PARTICOLARI RISPETTO AL SOLITO. BUON LAVORO</b>
+        </div>
+        """, unsafe_allow_html=True)
+
+        presenza = st.checkbox("da fleggare - CONFERMA DI PRESENZA SUL PDV")
+
+        if presenza:
+            conferme_ws.append_row([
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                codice_pdv,
+                "NESSUNA INDICAZIONE"
+            ])
+            st.success("Presenza registrata!")
+
+# =========================================================
+# 🟣 AREA AMMINISTRATORE NASCOSTA
+# =========================================================
+
+else:
+
+    st.markdown("# 🔒 DASHBOARD AMMINISTRATORE")
+
+    admin_pass = st.text_input("Password amministratore", type="password")
+
+    if admin_pass == "GianAri2026":
+
+        st.success("Accesso consentito")
+
+        st.subheader("Nuova indicazione operativa")
+
+        titolo = st.text_input("Titolo")
+        testo = st.text_area("Testo")
+        codici = st.text_area(
+            "Incolla Codici PDV (uno per riga o separati da virgola)"
+        )
+
+        if st.button("PUBBLICA INDICAZIONE"):
+
+            lista = [
                 c.strip()
-                for c in pdv_target.replace(',', '\n').split('\n')
+                for c in codici.replace(",", "\n").split("\n")
                 if c.strip()
             ]
-            st.session_state.messaggi.append({
-                'titolo': tit,
-                'testo': txt,
-                'inizio': d_ini,
-                'fine': d_fin,
-                'target': lista_target
-            })
-            save_data()
-            st.success(f"Pubblicato per {len(lista_target)} PDV!")
 
-    st.subheader("3. Report Conferme")
-    if st.session_state.conferme:
-        st.dataframe(pd.DataFrame(st.session_state.conferme))
-        if st.button("Pulisci tutti i log"):
-            st.session_state.conferme = []
-            save_data()
-            st.rerun()
+            for codice in lista:
+                messaggi_ws.append_row([
+                    codice,
+                    titolo,
+                    testo,
+                    oggi.strftime("%Y-%m-%d"),
+                    oggi.strftime("%Y-%m-%d"),
+                    "PDV"
+                ])
 
+            st.success("Indicazione pubblicata con successo!")
+
+    else:
+        st.warning("Inserire password valida")
