@@ -106,8 +106,8 @@ if not admin_mode:
 
         st.markdown("### Conferma di Lettura e di Presenza sul PDV")
 
-        lettura = st.checkbox("da fleggare - CONFERMA DI LETTURA INDICAZIONE")
-        presenza = st.checkbox("da fleggare - CONFERMA DI PRESENZA SUL PDV")
+        lettura = st.checkbox("fleg CONFERMA DI LETTURA INDICAZIONE")
+        presenza = st.checkbox("fleg - CONFERMA DI PRESENZA SUL PDV")
 
         if lettura and presenza:
             conferme_ws.append_row([
@@ -129,7 +129,7 @@ if not admin_mode:
         </div>
         """, unsafe_allow_html=True)
 
-        presenza = st.checkbox("da fleggare - CONFERMA DI PRESENZA SUL PDV")
+        presenza = st.checkbox("fleg CONFERMA DI PRESENZA SUL PDV")
 
         if presenza:
             conferme_ws.append_row([
@@ -183,6 +183,7 @@ else:
 
     else:
         st.warning("Inserire password valida")
+
 
 
 
