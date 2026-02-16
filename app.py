@@ -32,7 +32,7 @@ creds = Credentials.from_service_account_info(
 
 client = gspread.authorize(creds)
 
-SPREADSHEET_NAME = "1pWEy4G1tMHMxTJwO8sjPxSL5jLBsCALFcGSoYmpMYuw"
+SPREADSHEET_NAME = "OPERATIVITA"
 
 sheet = client.open(SPREADSHEET_NAME)
 
@@ -183,4 +183,5 @@ else:
 
     else:
         st.warning("Inserire password valida")
+
 
