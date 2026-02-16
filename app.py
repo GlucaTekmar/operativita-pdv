@@ -19,7 +19,7 @@ h1, h2, h3, h4, h5, h6, p, label {color:white;}
 # ---------- LOGO ----------
 
 
-st.image("logo.png", use_container_width=False, width=120)
+st.image("logo.png", use_container_width=False, width=220)
 
 # ---------- GOOGLE SHEETS CONNECTION ----------
 scope = [
@@ -184,6 +184,7 @@ else:
 
     else:
         st.warning("Inserire password valida")
+
 
 
 
