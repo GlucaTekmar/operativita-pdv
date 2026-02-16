@@ -62,8 +62,7 @@ if "admin" in query and query["admin"] == "1":
 if not admin_mode:
 
     st.markdown("## SELEZIONA IL TUO PDV")
-    st.markdown("### **CERCA IL TUO PDV:**")
-
+    
     anagrafica["Display"] = (
         anagrafica["Codice"].astype(str)
         + " - "
@@ -183,6 +182,7 @@ else:
 
     else:
         st.warning("Inserire password valida")
+
 
 
 
