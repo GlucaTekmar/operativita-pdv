@@ -11,7 +11,7 @@ st.set_page_config(layout="wide")
 st.markdown("""
 <style>
 body {background-color:#E30613;}
-.block-container {padding-top:5rem;}
+.block-container {padding-top:4rem;}
 h1, h2, h3, h4, h5, h6, p, label {color:white;}
 </style>
 """, unsafe_allow_html=True)
@@ -183,6 +183,7 @@ else:
 
     else:
         st.warning("Inserire password valida")
+
 
 
 
