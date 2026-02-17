@@ -16,10 +16,14 @@ st.markdown("""
     background-color: #E30613;
 }
 
+/* Spazio sopra per non tagliare logo */
 .block-container {
-    padding-top: 4rem;
+    padding-top: 6rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
 }
 
+/* Testo bianco */
 h1, h2, h3, h4, h5, h6, p, label, div {
     color: white;
 }
@@ -211,4 +215,5 @@ else:
 
     else:
         st.warning("Inserire password valida")
+
 
