@@ -12,21 +12,28 @@ st.set_page_config(layout="wide")
 
 st.markdown("""
 <style>
+
+/* Sfondo rosso pieno */
 .stApp {
     background-color: #E30613;
 }
 
-/* Spazio sopra per non tagliare logo */
+/* Spazio sopra */
 .block-container {
     padding-top: 6rem;
-    padding-left: 2rem;
-    padding-right: 2rem;
 }
 
-/* Testo bianco */
-h1, h2, h3, h4, h5, h6, p, label, div {
+/* Testi bianchi */
+h1, h2, h3, h4, h5, h6, p, label {
     color: white;
 }
+
+/* Sistema margini laterali */
+.main .block-container {
+    padding-left: 3rem;
+    padding-right: 3rem;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -215,5 +222,6 @@ else:
 
     else:
         st.warning("Inserire password valida")
+
 
 
