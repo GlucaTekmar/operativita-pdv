@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import streamlit as st
+st.write("VERSIONE NUOVA — TEST")
 import gspread
 from google.oauth2.service_account import Credentials
 from PIL import Image
@@ -699,6 +700,7 @@ try:
 except Exception as e:
     st.error("Errore applicazione.")
     st.caption(str(e))
+
 
 
 
