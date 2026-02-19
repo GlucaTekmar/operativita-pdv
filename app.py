@@ -4,27 +4,58 @@ from datetime import datetime
 import gspread
 from google.oauth2.service_account import Credentials
 
-st.set_page_config(layout="wide")
+# =========================================================
+# CONFIG
+# =========================================================
+
+st.set_page_config(page_title="Operatività PDV", layout="centered")
+
+JOTFORM_HOME = "https://eu.jotform.com/it/app/build/253605296903360"
+ADMIN_PASSWORD = "GianAri2026"
+
+SPREADSHEET_ID = "11o5dTHZBaeWS0N2crJyGqNbOsIPnLWzIu9q9snYw9hI"
 
 # =========================================================
-# 🎨 STILE
+# STILE
 # =========================================================
+
 st.markdown("""
 <style>
-body {background-color:#E30613;}
-.block-container {padding-top:4rem;}
-h1, h2, h3, h4, h5, h6, p, label {color:white;}
+.stApp { background-color: #E30613; }
+
+.block-container { padding-top: 4rem; }
+
+h1, h2, h3, h4, h5, h6, p, label, div {
+    color: white !important;
+}
+
+.box-bianco {
+    background: white;
+    color: black !important;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.box-bianco * { color: black !important; }
+
+.small-note {
+    font-size: 14px;
+    font-weight: bold;
+}
 </style>
 """, unsafe_allow_html=True)
 
 # =========================================================
-# 🖼️ LOGO
+# LOGO
 # =========================================================
+
 st.image("logo.png", width=260)
 
 # =========================================================
-# 🔐 CONNESSIONE GOOGLE SHEET
+# GOOGLE SHEETS
 # =========================================================
+
 scope = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
@@ -36,9 +67,6 @@ creds = Credentials.from_service_account_info(
 )
 
 client = gspread.authorize(creds)
-
-SPREADSHEET_ID = "11o5dTHZBaeWS0N2crJyGqNbOsIPnLWzIu9q9snYw9hI"
-
 sheet = client.open_by_key(SPREADSHEET_ID)
 
 anagrafica_ws = sheet.worksheet("ANAGRAFICA")
@@ -51,21 +79,121 @@ messaggi = pd.DataFrame(messaggi_ws.get_all_records())
 oggi = datetime.now().date()
 
 # =========================================================
-# 🔑 RILEVA MODALITÀ ADMIN
+# MODALITÀ ADMIN
 # =========================================================
-query = st.query_params
-admin_mode = query.get("admin") == "1"
+
+params = st.query_params
+admin_mode = params.get("admin") == "1"
 
 # =========================================================
-# 🟣 AREA AMMINISTRATORE
+# AREA DIPENDENTI
 # =========================================================
-if admin_mode:
 
-    st.title("🔒 DASHBOARD AMMINISTRATORE")
+if not admin_mode:
 
-    password = st.text_input("Password amministratore", type="password")
+    st.markdown("## INDICAZIONI DI GIORNATA")
+    st.markdown("## SELEZIONA IL TUO PDV")
 
-    if password == st.secrets["ADMIN_PASSWORD"]:
+    if not anagrafica.empty:
+
+        anagrafica["Display"] = (
+            anagrafica["Codice"].astype(str)
+            + " - "
+            + anagrafica["Insegna"]
+            + " ("
+            + anagrafica["Città"]
+            + ")"
+        )
+
+        lista = [""] + anagrafica["Display"].tolist()
+
+        pdv = st.selectbox("", lista, index=0)
+
+        st.markdown(
+            "<p class='small-note'>Digita le prime lettere della città per trovare il tuo PDV</p>",
+            unsafe_allow_html=True
+        )
+
+        if pdv != "":
+
+            codice_pdv = pdv.split(" - ")[0]
+
+            messaggi_attivi = messaggi[
+                (messaggi["ID"].astype(str) == codice_pdv)
+            ]
+
+            # -------------------------------------------------
+            # CON INDICAZIONE
+            # -------------------------------------------------
+
+            if not messaggi_attivi.empty:
+
+                msg = messaggi_attivi.iloc[0]
+
+                st.markdown(f"""
+                <div class="box-bianco">
+                <h3>{msg['Titolo']}</h3>
+                <p>{msg['Testo']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.markdown("### Conferma di Lettura e di Presenza sul PDV")
+
+                lettura = st.checkbox(
+                    "da fleggare - CONFERMA DI LETTURA INDICAZIONE"
+                )
+                presenza = st.checkbox(
+                    "da fleggare - CONFERMA DI PRESENZA SUL PDV"
+                )
+
+                if lettura and presenza:
+                    conferme_ws.append_row([
+                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        codice_pdv,
+                        msg["Titolo"]
+                    ])
+                    st.success("Conferma registrata")
+
+            # -------------------------------------------------
+            # SENZA INDICAZIONE
+            # -------------------------------------------------
+
+            else:
+
+                st.markdown("""
+                <div class="box-bianco">
+                <b>PER QUESTO PDV QUESTA MATTINA NON SONO PREVISTE PROMO E/O ATTIVITÀ PARTICOLARI RISPETTO AL SOLITO. BUON LAVORO</b>
+                </div>
+                """, unsafe_allow_html=True)
+
+                presenza = st.checkbox(
+                    "da fleggare - CONFERMA DI PRESENZA SUL PDV"
+                )
+
+                if presenza:
+                    conferme_ws.append_row([
+                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        codice_pdv,
+                        "NESSUNA INDICAZIONE"
+                    ])
+                    st.success("Presenza registrata")
+
+            st.link_button("HOME", JOTFORM_HOME)
+
+    else:
+        st.warning("Anagrafica non disponibile")
+
+# =========================================================
+# AREA AMMINISTRATORE
+# =========================================================
+
+else:
+
+    st.markdown("# 🔒 DASHBOARD AMMINISTRATORE")
+
+    password = st.text_input("Password", type="password")
+
+    if password == ADMIN_PASSWORD:
 
         st.success("Accesso consentito")
 
@@ -73,6 +201,10 @@ if admin_mode:
 
         titolo = st.text_input("Titolo")
         testo = st.text_area("Testo")
+
+        col1, col2 = st.columns(2)
+        data_inizio = col1.date_input("Data inizio")
+        data_fine = col2.date_input("Data fine")
 
         codici = st.text_area(
             "Incolla Codici PDV (uno per riga o separati da virgola)"
@@ -91,93 +223,17 @@ if admin_mode:
                     codice,
                     titolo,
                     testo,
-                    oggi.strftime("%Y-%m-%d"),
-                    oggi.strftime("%Y-%m-%d")
+                    data_inizio.strftime("%Y-%m-%d"),
+                    data_fine.strftime("%Y-%m-%d")
                 ])
 
-            st.success("Indicazione pubblicata con successo!")
+            st.success("Indicazione pubblicata")
+
+        st.subheader("Report conferme")
+
+        conferme = pd.DataFrame(conferme_ws.get_all_records())
+        if not conferme.empty:
+            st.dataframe(conferme)
 
     else:
-        st.warning("Inserire password valida")
-
-# =========================================================
-# 🔵 AREA DIPENDENTI
-# =========================================================
-else:
-
-    st.markdown("## CERCA IL TUO PDV:")
-
-    anagrafica["Display"] = (
-        anagrafica["Codice"].astype(str)
-        + " - "
-        + anagrafica["Insegna"]
-        + " ("
-        + anagrafica["Città"]
-        + ")"
-    )
-
-    scelta = st.selectbox(
-        "",
-        ["Seleziona il tuo PDV"] + list(anagrafica["Display"])
-    )
-
-    st.markdown(
-        "<p style='font-size:14px'><b>Digita le prime lettere della città per trovare il tuo PDV</b></p>",
-        unsafe_allow_html=True
-    )
-
-    if scelta != "Seleziona il tuo PDV":
-
-        codice_pdv = scelta.split(" - ")[0]
-
-        messaggi_attivi = messaggi[
-            messaggi["ID"].astype(str) == codice_pdv
-        ]
-
-        # =====================================================
-        # SE ESISTE INDICAZIONE OPERATIVA
-        # =====================================================
-        if not messaggi_attivi.empty:
-
-            msg = messaggi_attivi.iloc[0]
-
-            st.markdown(f"""
-            <div style='background:white;color:black;padding:20px;border-radius:10px'>
-            <h3>{msg['Titolo']}</h3>
-            <p>{msg['Testo']}</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-            st.markdown("### Conferma di Lettura e Presenza")
-
-            lettura = st.checkbox("Conferma lettura indicazione")
-            presenza = st.checkbox("Conferma presenza sul PDV")
-
-            if lettura and presenza:
-                conferme_ws.append_row([
-                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    codice_pdv,
-                    msg["Titolo"]
-                ])
-                st.success("Conferma registrata")
-
-        # =====================================================
-        # SE NON ESISTE INDICAZIONE
-        # =====================================================
-        else:
-
-            st.markdown("""
-            <div style='background:white;color:black;padding:20px;border-radius:10px'>
-            <b>PER QUESTO PDV QUESTA MATTINA NON SONO PREVISTE ATTIVITÀ PARTICOLARI. BUON LAVORO</b>
-            </div>
-            """, unsafe_allow_html=True)
-
-            presenza = st.checkbox("Conferma presenza sul PDV")
-
-            if presenza:
-                conferme_ws.append_row([
-                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    codice_pdv,
-                    "NESSUNA INDICAZIONE"
-                ])
-                st.success("Presenza registrata")
+        st.warning("Inserire password corretta")
