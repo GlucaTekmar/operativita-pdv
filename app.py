@@ -1,3 +1,4 @@
+st.write("VERSIONE NUOVA — TEST")
 # =========================================================
 # OPERATIVITA PDV — VERSIONE DEFINITIVA MONO-CLIENTE
 # Streamlit Cloud (ora) + Render (poi) — stesso codice
@@ -698,6 +699,7 @@ try:
 except Exception as e:
     st.error("Errore applicazione.")
     st.caption(str(e))
+
 
 
 
