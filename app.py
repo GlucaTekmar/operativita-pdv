@@ -1,239 +1,215 @@
+# =========================
+# WEB-APP OPERATIVITA PDV
+# VERSIONE DEFINITIVA — MONO CLIENTE
+# Compatibile Streamlit + Render
+# =========================
+
 import streamlit as st
 import pandas as pd
-from datetime import datetime
+import datetime as dt
+import json
 import gspread
 from google.oauth2.service_account import Credentials
+from PIL import Image
 
-# =========================================================
-# CONFIG
-# =========================================================
+# =========================
+# CONFIG PAGINA
+# =========================
 
-st.set_page_config(page_title="Operatività PDV", layout="centered")
+st.set_page_config(
+    page_title="Operatività PDV",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
-JOTFORM_HOME = "https://eu.jotform.com/it/app/build/253605296903360"
-ADMIN_PASSWORD = "GianAri2026"
-
-SPREADSHEET_ID = "11o5dTHZBaeWS0N2crJyGqNbOsIPnLWzIu9q9snYw9hI"
-
-# =========================================================
-# STILE
-# =========================================================
+# =========================
+# GRAFICA — SFONDO ROSSO
+# =========================
 
 st.markdown("""
 <style>
-.stApp { background-color: #E30613; }
-
-.block-container { padding-top: 4rem; }
-
-h1, h2, h3, h4, h5, h6, p, label, div {
-    color: white !important;
-}
-
-.box-bianco {
-    background: white;
-    color: black !important;
-    padding: 20px;
-    border-radius: 10px;
-    margin-top: 20px;
-}
-
-.box-bianco * { color: black !important; }
-
-.small-note {
-    font-size: 14px;
-    font-weight: bold;
-}
+.stApp { background-color: #c40018; color: white; }
+h1, h2, h3, h4, h5, h6, p, label { color: white !important; }
+div[data-baseweb="select"] > div { background: black !important; color: white !important; }
+.stTextInput > div > div > input { background: black; color: white; }
+.stTextArea textarea { background: black; color: white; }
+.stDateInput input { background: black; color: white; }
+.stButton button { background-color: black; color: white; font-weight: bold; }
 </style>
 """, unsafe_allow_html=True)
 
-# =========================================================
-# LOGO
-# =========================================================
+# =========================
+# LOGO CENTRATO
+# =========================
 
-st.image("logo.png", width=260)
+col1, col2, col3 = st.columns([1,2,1])
+with col2:
+    logo = Image.open("logo.png")
+    st.image(logo, use_column_width=True)
 
-# =========================================================
-# GOOGLE SHEETS
-# =========================================================
+# =========================
+# CONNESSIONE GOOGLE SHEETS
+# =========================
 
-scope = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-]
+def connect_gsheet():
 
-creds = Credentials.from_service_account_info(
-    st.secrets["gcp_service_account"],
-    scopes=scope
-)
+    creds_dict = dict(st.secrets)
 
-client = gspread.authorize(creds)
-sheet = client.open_by_key(SPREADSHEET_ID)
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
 
-anagrafica_ws = sheet.worksheet("ANAGRAFICA")
-messaggi_ws = sheet.worksheet("MESSAGGI")
-conferme_ws = sheet.worksheet("CONFERME")
+    creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+    client = gspread.authorize(creds)
 
-anagrafica = pd.DataFrame(anagrafica_ws.get_all_records())
-messaggi = pd.DataFrame(messaggi_ws.get_all_records())
+    sheet = client.open("OPERATIVITA")
 
-oggi = datetime.now().date()
+    return sheet
 
-# =========================================================
-# MODALITÀ ADMIN
-# =========================================================
+# =========================
+# PARAMETRI ACCESSO
+# =========================
 
 params = st.query_params
-admin_mode = params.get("admin") == "1"
+is_admin = params.get("admin") == "1"
+key_ok = params.get("key") == st.secrets["ADMIN_KEY"]
 
-# =========================================================
-# AREA DIPENDENTI
-# =========================================================
+sheet = connect_gsheet()
 
-if not admin_mode:
+# =========================
+# =========================
+# 🔐 AREA ADMIN
+# =========================
+# =========================
 
-    st.markdown("## INDICAZIONI DI GIORNATA")
-    st.markdown("## SELEZIONA IL TUO PDV")
+if is_admin and key_ok:
 
-    if not anagrafica.empty:
-
-        anagrafica["Display"] = (
-            anagrafica["Codice"].astype(str)
-            + " - "
-            + anagrafica["Insegna"]
-            + " ("
-            + anagrafica["Città"]
-            + ")"
-        )
-
-        lista = [""] + anagrafica["Display"].tolist()
-
-        pdv = st.selectbox("", lista, index=0)
-
-        st.markdown(
-            "<p class='small-note'>Digita le prime lettere della città per trovare il tuo PDV</p>",
-            unsafe_allow_html=True
-        )
-
-        if pdv != "":
-
-            codice_pdv = pdv.split(" - ")[0]
-
-            messaggi_attivi = messaggi[
-                (messaggi["ID"].astype(str) == codice_pdv)
-            ]
-
-            # -------------------------------------------------
-            # CON INDICAZIONE
-            # -------------------------------------------------
-
-            if not messaggi_attivi.empty:
-
-                msg = messaggi_attivi.iloc[0]
-
-                st.markdown(f"""
-                <div class="box-bianco">
-                <h3>{msg['Titolo']}</h3>
-                <p>{msg['Testo']}</p>
-                </div>
-                """, unsafe_allow_html=True)
-
-                st.markdown("### Conferma di Lettura e di Presenza sul PDV")
-
-                lettura = st.checkbox(
-                    "da fleggare - CONFERMA DI LETTURA INDICAZIONE"
-                )
-                presenza = st.checkbox(
-                    "da fleggare - CONFERMA DI PRESENZA SUL PDV"
-                )
-
-                if lettura and presenza:
-                    conferme_ws.append_row([
-                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        codice_pdv,
-                        msg["Titolo"]
-                    ])
-                    st.success("Conferma registrata")
-
-            # -------------------------------------------------
-            # SENZA INDICAZIONE
-            # -------------------------------------------------
-
-            else:
-
-                st.markdown("""
-                <div class="box-bianco">
-                <b>PER QUESTO PDV QUESTA MATTINA NON SONO PREVISTE PROMO E/O ATTIVITÀ PARTICOLARI RISPETTO AL SOLITO. BUON LAVORO</b>
-                </div>
-                """, unsafe_allow_html=True)
-
-                presenza = st.checkbox(
-                    "da fleggare - CONFERMA DI PRESENZA SUL PDV"
-                )
-
-                if presenza:
-                    conferme_ws.append_row([
-                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        codice_pdv,
-                        "NESSUNA INDICAZIONE"
-                    ])
-                    st.success("Presenza registrata")
-
-            st.link_button("HOME", JOTFORM_HOME)
-
-    else:
-        st.warning("Anagrafica non disponibile")
-
-# =========================================================
-# AREA AMMINISTRATORE
-# =========================================================
-
-else:
-
-    st.markdown("# 🔒 DASHBOARD AMMINISTRATORE")
+    st.title("🔐 DASHBOARD AMMINISTRATORE")
 
     password = st.text_input("Password", type="password")
 
-    if password == ADMIN_PASSWORD:
+    if password == st.secrets["ADMIN_PASSWORD"]:
 
-        st.success("Accesso consentito")
+        # -------------------------
+        # CARICA LISTA PDV
+        # -------------------------
 
-        st.subheader("Nuova indicazione operativa")
+        st.subheader("📥 Carica lista PDV (Excel)")
+
+        file = st.file_uploader("Carica file Excel", type=["xlsx"])
+
+        if file:
+
+            df = pd.read_excel(file)
+
+            anagrafica_ws = sheet.worksheet("ANAGRAFICA")
+            anagrafica_ws.clear()
+            anagrafica_ws.update([df.columns.values.tolist()] + df.values.tolist())
+
+            st.success("Lista PDV aggiornata")
+
+        # -------------------------
+        # INSERIMENTO INDICAZIONE
+        # -------------------------
+
+        st.subheader("📝 Nuova indicazione operativa")
 
         titolo = st.text_input("Titolo")
-        testo = st.text_area("Testo")
+        testo = st.text_area("Testo (puoi incollare anche link)")
+        data_inizio = st.date_input("Data inizio")
+        data_fine = st.date_input("Data fine")
 
-        col1, col2 = st.columns(2)
-        data_inizio = col1.date_input("Data inizio")
-        data_fine = col2.date_input("Data fine")
+        anagrafica_df = pd.DataFrame(sheet.worksheet("ANAGRAFICA").get_all_records())
 
-        codici = st.text_area(
-            "Incolla Codici PDV (uno per riga o separati da virgola)"
-        )
+        pdv_list = anagrafica_df["Città"].tolist()
 
-        if st.button("PUBBLICA INDICAZIONE"):
+        target = st.multiselect("PDV destinatari", pdv_list)
 
-            lista = [
-                c.strip()
-                for c in codici.replace(",", "\n").split("\n")
-                if c.strip()
+        if st.button("INVIA INDICAZIONE"):
+
+            msg_ws = sheet.worksheet("MESSAGGI")
+
+            new_row = [
+                titolo,
+                testo,
+                str(data_inizio),
+                str(data_fine),
+                "|".join(target)
             ]
 
-            for codice in lista:
-                messaggi_ws.append_row([
-                    codice,
-                    titolo,
-                    testo,
-                    data_inizio.strftime("%Y-%m-%d"),
-                    data_fine.strftime("%Y-%m-%d")
-                ])
+            msg_ws.append_row(new_row)
 
-            st.success("Indicazione pubblicata")
+            st.success("Indicazione salvata")
 
-        st.subheader("Report conferme")
+        # -------------------------
+        # LOG CONFERME
+        # -------------------------
 
-        conferme = pd.DataFrame(conferme_ws.get_all_records())
-        if not conferme.empty:
-            st.dataframe(conferme)
+        st.subheader("📊 Log conferme")
+
+        conf_ws = sheet.worksheet("CONFERME")
+        conf_df = pd.DataFrame(conf_ws.get_all_records())
+
+        st.dataframe(conf_df, use_container_width=True)
 
     else:
         st.warning("Inserire password corretta")
+
+# =========================
+# =========================
+# 👤 AREA DIPENDENTI
+# =========================
+# =========================
+
+else:
+
+    st.markdown("## INDICAZIONI DI GIORNATA")
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("## CERCA IL TUO PDV:")
+
+    anagrafica_df = pd.DataFrame(sheet.worksheet("ANAGRAFICA").get_all_records())
+
+    pdv_list = anagrafica_df["Città"].tolist()
+
+    pdv = st.selectbox("Seleziona il tuo PDV", pdv_list)
+
+    oggi = dt.date.today()
+
+    msg_df = pd.DataFrame(sheet.worksheet("MESSAGGI").get_all_records())
+
+    visibili = []
+
+    for _, r in msg_df.iterrows():
+
+        inizio = dt.date.fromisoformat(r["Inizio"])
+        fine = dt.date.fromisoformat(r["Fine"])
+
+        targets = r["Target"].split("|")
+
+        if inizio <= oggi <= fine and pdv in targets:
+            visibili.append(r)
+
+    if visibili:
+
+        for m in visibili:
+
+            st.markdown(f"### {m['Titolo']}")
+            st.markdown(m["Testo"])
+
+            if st.button(f"Conferma lettura — {m['Titolo']}"):
+
+                conf_ws = sheet.worksheet("CONFERME")
+
+                conf_ws.append_row([
+                    dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    pdv,
+                    m["Titolo"]
+                ])
+
+                st.success("Conferma registrata")
+
+    else:
+
+        st.info("Oggi su questo Punto Vendita NON sono previste Promo/Attività particolari. Buon lavoro")
+
