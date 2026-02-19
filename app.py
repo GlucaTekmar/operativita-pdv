@@ -1,10 +1,3 @@
-# =========================================================
-# OPERATIVITA PDV — VERSIONE DEFINITIVA MONO-CLIENTE
-# Streamlit Cloud (ora) + Render (poi) — stesso codice
-# Google Sheet: file "OPERATIVITA"
-# Fogli: ANAGRAFICA | MESSAGGI | Conferme (o CONFERME)
-# =========================================================
-
 import os
 import re
 import json
@@ -701,6 +694,7 @@ try:
 except Exception as e:
     st.error("Errore applicazione.")
     st.caption(str(e))
+
 
 
 
