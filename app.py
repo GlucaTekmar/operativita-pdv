@@ -687,16 +687,25 @@ def admin_view() -> None:
 # MAIN
 # =========================================================
 try:
-    pw_direct = st.text_input("Accesso amministratore — inserisci password", type="password")
+    if "admin_ok" not in st.session_state:
+        st.session_state.admin_ok = False
 
-    if pw_direct and pw_direct == get_admin_password():
-        admin_view()
-    else:
+    if not st.session_state.admin_ok:
+        pw_direct = st.text_input("Accesso amministratore — inserisci password", type="password")
+
+        if pw_direct == get_admin_password():
+            st.session_state.admin_ok = True
+            st.rerun()
+
         dipendenti_view()
+
+    else:
+        admin_view()
 
 except Exception as e:
     st.error("Errore applicazione.")
     st.caption(str(e))
+
 
 
 
