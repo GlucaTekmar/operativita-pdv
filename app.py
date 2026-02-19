@@ -691,13 +691,13 @@ try:
         st.session_state.admin_ok = False
 
     if not st.session_state.admin_ok:
-        pw_direct = st.text_input("Accesso amministratore — inserisci password", type="password")
+        pw = st.text_input("Accesso amministratore — inserisci password", type="password")
 
-        if pw_direct == get_admin_password():
+        if pw == get_admin_password():
             st.session_state.admin_ok = True
             st.rerun()
 
-        dipendenti_view()
+        # ⛔ NON mostrare dipendenti qui
 
     else:
         admin_view()
@@ -705,6 +705,7 @@ try:
 except Exception as e:
     st.error("Errore applicazione.")
     st.caption(str(e))
+
 
 
 
