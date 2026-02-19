@@ -312,8 +312,13 @@ def embed_image_html(img_bytes: bytes, filename: str) -> str:
 # ROUTING ADMIN (LINK NASCOSTO)
 # /?admin=1&key=<ADMIN_KEY>
 # =========================================================
-qp = st.query_params
-ADMIN_MODE = (str(qp.get("admin", "")).strip() == "1") and (str(qp.get("key", "")).strip() == get_admin_key()) and bool(get_admin_key())
+qp = st.experimental_get_query_params()
+
+ADMIN_MODE = (
+    qp.get("admin", [""])[0] == "1"
+    and qp.get("key", [""])[0] == get_admin_key()
+    and bool(get_admin_key())
+)
 
 # =========================================================
 # PRECARICO FOGLI
@@ -693,5 +698,6 @@ try:
 except Exception as e:
     st.error("Errore applicazione.")
     st.caption(str(e))
+
 
 
