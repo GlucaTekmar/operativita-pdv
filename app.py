@@ -687,13 +687,17 @@ def admin_view() -> None:
 # MAIN
 # =========================================================
 try:
-    if ADMIN_MODE:
+    pw_direct = st.text_input("Accesso amministratore — inserisci password", type="password")
+
+    if pw_direct and pw_direct == get_admin_password():
         admin_view()
     else:
         dipendenti_view()
+
 except Exception as e:
     st.error("Errore applicazione.")
     st.caption(str(e))
+
 
 
 
