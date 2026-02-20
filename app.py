@@ -134,7 +134,7 @@ def dipendenti_view():
 
         st.markdown("""
         <div class="card">
-        PER QUESTO PDV NON SONO PREVISTE ATTIVITÀ PARTICOLARI.
+        QUESTA MATTINA SU QUESTO PUNTO VENDITA NON SONO PREVISTE PROMO E/O ATTIVITÀ PARTICOLARI.
         BUON LAVORO.
         </div>
         """, unsafe_allow_html=True)
@@ -257,3 +257,4 @@ if ADMIN_MODE:
     admin_view()
 else:
     dipendenti_view()
+
