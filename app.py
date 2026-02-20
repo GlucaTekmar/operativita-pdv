@@ -6,7 +6,7 @@ import os, json, base64
 from datetime import datetime
 import pandas as pd
 import streamlit as st
-SPREADSHEET_ID = st.secrets.get("SPREADSHEET_ID") or "1pWEy4G1tMHMxTJwO8sjPxSL5jLBsCALFcGSoYmpMYuw"
+SPREADSHEET_ID = "1pWEy4G1tMHMxTJwO8sjPxSL5jLBsCALFcGSoYmpMYuw"
 import gspread
 from google.oauth2.service_account import Credentials
 from PIL import Image
@@ -258,6 +258,7 @@ if ADMIN_MODE:
     admin_view()
 else:
     dipendenti_view()
+
 
 
 
