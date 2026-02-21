@@ -219,10 +219,11 @@ def admin():
 
 params = st.query_params
 
-if "admingianari2026" in params:
+if params.get("admin) == "1":
     admin()
 else:
     dipendenti_view()
+
 
 
 
