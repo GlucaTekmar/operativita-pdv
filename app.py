@@ -215,7 +215,7 @@ def admin():
             save_csv(df.iloc[0:0], LOG_FILE)
             st.success("Log pulito")
 
-# ================= SWITCH =================
+# ================= SWITCH PAGINE =================
 
 params = st.query_params
 
@@ -223,5 +223,6 @@ if "admingianari2026" in params:
     admin()
 else:
     dipendenti_view()
+
 
 
