@@ -25,14 +25,6 @@ def save_csv(df, path):
 
 
 # =========================================================
-# LOGO
-# =========================================================
-
-if os.path.exists("logo.png"):
-    st.image("logo.png", width=200)
-
-
-# =========================================================
 # ADMIN VIEW
 # =========================================================
 
@@ -40,22 +32,21 @@ def admin():
 
     st.title("DASHBOARD ADMIN")
 
-    # ---------- PASSWORD ----------
     password = st.text_input("Password", type="password")
 
     if password != "GianAri2026":
         st.warning("Inserire password admin")
         return
 
-    # =====================================================
-    # CARICAMENTO LISTA PDV
-    # =====================================================
+    st.markdown("---")
 
-    st.header("Lista PDV (ID;Nome)")
+    # ===== IMPORT PDV =====
+
+    st.header("IMPORT LISTA PDV (ID;Nome)")
 
     pdv_text = st.text_area(
         "Incolla elenco PDV",
-        height=250
+        height=300
     )
 
     if st.button("SALVA LISTA PDV"):
@@ -72,25 +63,26 @@ def admin():
 
         st.success("Lista PDV salvata")
 
-    # =====================================================
-    # CREAZIONE MESSAGGIO
-    # =====================================================
+    st.markdown("---")
 
-    st.header("Nuovo messaggio")
+    # ===== NUOVO MESSAGGIO =====
+
+    st.header("CREA NUOVO MESSAGGIO")
 
     msg = st.text_area(
-        "Messaggio (stile WhatsApp)",
-        height=300
+        "Testo messaggio",
+        height=400
     )
 
-    st.caption("Supporta link copiati da WhatsApp")
-
-    data_inizio = st.date_input("Data inizio")
-    data_fine = st.date_input("Data fine")
+    col1, col2 = st.columns(2)
+    with col1:
+        data_inizio = st.date_input("Data inizio")
+    with col2:
+        data_fine = st.date_input("Data fine")
 
     pdv_ids = st.text_area(
         "Incolla ID PDV (uno per riga)",
-        height=150
+        height=200
     )
 
     uploaded = st.file_uploader(
@@ -124,15 +116,13 @@ def admin():
 
         st.success("Messaggio salvato")
 
-    # =====================================================
-    # REPORT LOG
-    # =====================================================
+    st.markdown("---")
 
-    st.header("Report letture")
+    # ===== REPORT LOG =====
 
-    log = load_csv(LOG_FILE, [
-        "data", "pdv", "msg"
-    ])
+    st.header("REPORT LETTURE")
+
+    log = load_csv(LOG_FILE, ["data", "pdv", "msg"])
 
     st.dataframe(log, use_container_width=True)
 
@@ -153,17 +143,39 @@ def admin():
 
 def dipendenti_view():
 
-    st.markdown(
-        """
+    st.markdown("""
         <style>
-        body {background-color:#b30000;}
+        .stApp {background-color:#b30000; color:white;}
+
+        div[data-baseweb="select"] > div {
+            background-color: #1f1f1f;
+            color: white;
+        }
+
+        label, p, h1, h2, h3 {
+            color: white !important;
+        }
         </style>
-        """,
+    """, unsafe_allow_html=True)
+
+    # ===== LOGO CENTRATO =====
+    if os.path.exists("logo.png"):
+        c1, c2, c3 = st.columns([1,2,1])
+        with c2:
+            st.image("logo.png", width=240)
+
+    # ===== TITOLI =====
+    st.markdown(
+        "<h1 style='text-align:center;'>INDICAZIONI OPERATIVE</h1>",
         unsafe_allow_html=True
     )
 
-    st.title("INDICAZIONI OPERATIVE")
+    st.markdown(
+        "<h3 style='text-align:center;'>SELEZIONA IL TUO PDV</h3>",
+        unsafe_allow_html=True
+    )
 
+    # ===== PDV =====
     pdv_df = load_csv(PDV_FILE, ["ID", "PDV"])
 
     if pdv_df.empty:
@@ -171,14 +183,25 @@ def dipendenti_view():
         return
 
     scelta = st.selectbox(
-        "Seleziona PDV",
-        pdv_df["PDV"]
+        "Cerca il tuo PDV:",
+        options=pdv_df["PDV"],
+        index=None,
+        placeholder="Digita la città..."
     )
 
-    pdv_id = pdv_df.loc[
-        pdv_df["PDV"] == scelta, "ID"
-    ].values[0]
+    st.markdown(
+        "<p style='text-align:center; font-size:13px;'><b>"
+        "Digita le prime lettere della Città per trovare il tuo PDV"
+        "</b></p>",
+        unsafe_allow_html=True
+    )
 
+    if not scelta:
+        return
+
+    pdv_id = pdv_df.loc[pdv_df["PDV"] == scelta, "ID"].values[0]
+
+    # ===== MESSAGGI =====
     msg_df = load_csv(MSG_FILE, [
         "msg", "inizio", "fine", "pdv_ids", "file"
     ])
@@ -201,14 +224,11 @@ def dipendenti_view():
         st.info("Nessun messaggio")
         return
 
-    log_df = load_csv(LOG_FILE, [
-        "data", "pdv", "msg"
-    ])
+    log_df = load_csv(LOG_FILE, ["data", "pdv", "msg"])
 
     for r in mostrati:
 
         st.markdown("---")
-
         st.markdown(r["msg"], unsafe_allow_html=True)
 
         if r["file"]:
@@ -230,12 +250,7 @@ def dipendenti_view():
             st.success("Già confermato")
             continue
 
-        flag = st.checkbox(
-            "Confermo lettura e presenza",
-            key=r["msg"]
-        )
-
-        if flag:
+        if st.checkbox("Confermo lettura e presenza", key=r["msg"]):
 
             new = pd.DataFrame([[
                 datetime.now(),
