@@ -3,7 +3,6 @@ import pandas as pd
 from datetime import datetime
 import os
 from io import BytesIO
-from streamlit_quill import st_quill
 
 st.set_page_config(layout="wide")
 
@@ -89,7 +88,7 @@ def admin():
 
     st.write("FORMATTATORE TESTO")
 
-    msg = st_quill(html=True)
+    msg = st.text_area("",height=260)
 
     uploaded = st.file_uploader(
         "ALLEGATO (immagine o PDF)",
@@ -275,3 +274,4 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
