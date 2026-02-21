@@ -239,5 +239,6 @@ params = st.query_params
 if "admingianari2026" in params:
     admin()
 else:
-    dipendenti_view()
+    dipendenti()
+
 
