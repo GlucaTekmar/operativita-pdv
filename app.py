@@ -232,7 +232,12 @@ def save_file(file):
 # =========================================================
 # ================= MAIN ==================================
 # =========================================================
-if ADMIN_MODE:
+# ===================== SWITCH PAGINE =====================
+
+params = st.query_params
+
+if "admingianari2026" in params:
     admin()
 else:
-    dipendenti()
+    dipendenti_view()
+
