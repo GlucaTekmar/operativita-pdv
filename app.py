@@ -2,214 +2,41 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
+import io
 
-# ================= CONFIG =================
-st.set_page_config(page_title="Operatività PDV", layout="centered")
+st.set_page_config(page_title="Operatività PDV", layout="wide")
 
-ADMIN_KEY = "admin123"
 ADMIN_PASSWORD = "GianAri2026"
-HOME_URL = "https://eu.jotform.com/it/app/build/253605296903360"
+HOME_URL = "https://www.jotform.com"
 
 PDV_FILE = "pdv.csv"
 MSG_FILE = "messaggi.csv"
 LOG_FILE = "log.csv"
 
-# ================= STILE =================
-st.markdown("""
-<style>
-.stApp {background:#E30613;}
-h1,h2,h3,label,p {color:white !important;}
-.stButton button {background:#111;color:white;font-weight:bold;border-radius:10px;}
-</style>
-""", unsafe_allow_html=True)
-
 # ================= UTILITY =================
-def load_csv(file, cols):
+
+def load_csv(file, columns):
     if os.path.exists(file):
         return pd.read_csv(file)
-    return pd.DataFrame(columns=cols)
+    return pd.DataFrame(columns=columns)
 
 def save_csv(df, file):
     df.to_csv(file, index=False)
 
-# ================= ROUTING =================
-params = st.query_params
-ADMIN_MODE = params.get("admin") == "1" and params.get("key") == ADMIN_KEY
+# ================= LOG PER PDV =================
 
-# =========================================================
-# ================= AREA DIPENDENTI =======================
-# =========================================================
-def dipendenti():
+def log_esiste(pdv):
+    df = load_csv(LOG_FILE,
+                  ["Data_Ora", "PDV", "Messaggio", "Lettura", "Presenza"])
+    return pdv in df["PDV"].values
 
-    st.title("INDICAZIONI OPERATIVE")
-
-    pdv_df = load_csv(PDV_FILE, ["ID","Nome"])
-
-    if pdv_df.empty:
-        st.error("Archivio PDV vuoto")
-        st.stop()
-
-    scelta = st.selectbox(
-        "Seleziona PDV",
-        pdv_df["ID"] + " — " + pdv_df["Nome"]
-    )
-
-    pdv_id = scelta.split(" — ")[0]
-
-    msg_df = load_csv(MSG_FILE,
-        ["Titolo","Testo","PDV","Inizio","Fine","Img","PDF"]
-    )
-
-    oggi = datetime.now().date()
-
-    validi = msg_df[
-        (msg_df["PDV"].str.contains(pdv_id)) &
-        (pd.to_datetime(msg_df["Inizio"]).dt.date <= oggi) &
-        (pd.to_datetime(msg_df["Fine"]).dt.date >= oggi)
-    ]
-
-    # ======== SE C'È MESSAGGIO =========
-    if not validi.empty:
-
-        r = validi.iloc[0]
-
-        st.markdown(f"""
-        <div style="background:white;color:black;padding:15px;border-radius:12px;">
-        <h3>{r['Titolo']}</h3>
-        <p>{r['Testo']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if r["Img"]:
-            st.image(r["Img"])
-
-        if r["PDF"]:
-            st.link_button("Apri PDF", r["PDF"])
-
-        st.markdown("### Conferma")
-
-        lettura = st.checkbox("CONFERMA LETTURA")
-        presenza = st.checkbox("CONFERMA PRESENZA")
-
-        if st.button("INVIA"):
-            if not (lettura and presenza):
-                st.error("Devi confermare entrambi")
-            else:
-                salva_log(pdv_id, r["Titolo"], True, True)
-                st.success("Registrato")
-
-    # ======== NESSUN MESSAGGIO =========
-    else:
-
-        st.markdown("""
-        <div style="background:white;color:black;padding:15px;border-radius:12px;">
-        Nessuna indicazione operativa per oggi.
-        </div>
-        """, unsafe_allow_html=True)
-
-        presenza = st.checkbox("CONFERMA PRESENZA")
-
-        if st.button("INVIA"):
-            if not presenza:
-                st.error("Devi confermare presenza")
-            else:
-                salva_log(pdv_id, "", False, True)
-                st.success("Registrato")
-
-    st.link_button("HOME", HOME_URL)
-
-# =========================================================
-# ================= AREA ADMIN =============================
-# =========================================================
-def admin():
-
-    st.title("🔒 DASHBOARD ADMIN")
-
-    if st.text_input("Password", type="password") != ADMIN_PASSWORD:
-        st.stop()
-
-    tab1, tab2, tab3 = st.tabs(
-        ["PDV","Messaggi","Report Log"]
-    )
-
-    # ================= PDV =================
-    with tab1:
-
-        st.subheader("Importa elenco PDV")
-
-        testo = st.text_area("Incolla elenco ID;Nome")
-
-        if st.button("IMPORTA"):
-            righe = [r.split(";") for r in testo.splitlines() if ";" in r]
-            df = pd.DataFrame(righe, columns=["ID","Nome"])
-            save_csv(df, PDV_FILE)
-            st.success("Archivio aggiornato")
-
-        df = load_csv(PDV_FILE, ["ID","Nome"])
-        st.dataframe(df, use_container_width=True)
-
-    # ================= MESSAGGI =================
-    with tab2:
-
-        titolo = st.text_input("Titolo")
-        testo = st.text_area("Testo formattabile")
-        pdv = st.text_input("ID PDV (separati da virgola)")
-        inizio = st.date_input("Data inizio")
-        fine = st.date_input("Data fine")
-
-        img = st.file_uploader("Immagine")
-        pdf = st.file_uploader("PDF")
-
-        img_path = save_file(img)
-        pdf_path = save_file(pdf)
-
-        if st.button("SALVA MESSAGGIO"):
-
-            df = load_csv(MSG_FILE,
-                ["Titolo","Testo","PDV","Inizio","Fine","Img","PDF"]
-            )
-
-            df.loc[len(df)] = [
-                titolo, testo, pdv, inizio, fine,
-                img_path, pdf_path
-            ]
-
-            save_csv(df, MSG_FILE)
-            st.success("Messaggio salvato")
-
-    # ================= LOG =================
-    with tab3:
-
-        df = load_csv(LOG_FILE,
-            ["Data_Ora","PDV","Messaggio","Lettura","Presenza"]
-        )
-
-        st.dataframe(df, use_container_width=True)
-
-        st.download_button(
-            "Scarica CSV",
-            df.to_csv(index=False),
-            "report.csv"
-        )
-
-        st.download_button(
-            "Scarica Excel",
-            df.to_excel(index=False),
-            "report.xlsx"
-        )
-
-        if st.button("PULISCI LOG"):
-            save_csv(df.iloc[0:0], LOG_FILE)
-            st.success("Log pulito")
-
-# =========================================================
-# ================= SUPPORT ================================
-# =========================================================
 def salva_log(pdv, msg, lettura, presenza):
 
+    if log_esiste(pdv):
+        return  # evita duplicato per lo stesso PDV
+
     df = load_csv(LOG_FILE,
-        ["Data_Ora","PDV","Messaggio","Lettura","Presenza"]
-    )
+                  ["Data_Ora", "PDV", "Messaggio", "Lettura", "Presenza"])
 
     df.loc[len(df)] = [
         datetime.now(),
@@ -221,24 +48,178 @@ def salva_log(pdv, msg, lettura, presenza):
 
     save_csv(df, LOG_FILE)
 
-def save_file(file):
-    if file:
-        path = f"upload_{file.name}"
-        with open(path, "wb") as f:
-            f.write(file.read())
-        return path
-    return ""
+# ================= AREA DIPENDENTI =================
 
-# =========================================================
-# ================= MAIN ==================================
-# =========================================================
-# ===================== SWITCH PAGINE =====================
+def dipendenti_view():
+
+    st.markdown(
+        "<h1 style='text-align:center;color:white'>INDICAZIONI OPERATIVE</h1>",
+        unsafe_allow_html=True
+    )
+
+    pdv_df = load_csv(PDV_FILE, ["ID", "Nome"])
+
+    if pdv_df.empty:
+        st.warning("Archivio PDV vuoto")
+        return
+
+    scelta = st.selectbox("SELEZIONA IL TUO PDV", pdv_df["Nome"])
+
+    msg_df = load_csv(MSG_FILE,
+                      ["PDV", "Messaggio", "Inizio", "Fine"])
+
+    oggi = datetime.now().date()
+    msg_attivo = None
+
+    for _, r in msg_df.iterrows():
+        if r["PDV"] == scelta:
+            if r["Inizio"] <= str(oggi) <= r["Fine"]:
+                msg_attivo = r["Messaggio"]
+
+    gia_confermato = log_esiste(scelta)
+
+    # ===== CON MESSAGGIO =====
+
+    if msg_attivo:
+
+        st.info(msg_attivo)
+
+        if gia_confermato:
+            st.success("Già confermato per questo PDV")
+            st.link_button("HOME", HOME_URL)
+            return
+
+        lettura = st.checkbox("Confermo lettura")
+        presenza = st.checkbox("Confermo presenza")
+
+        if st.button("CONFERMA"):
+
+            if not lettura or not presenza:
+                st.error("Devi spuntare entrambi i flag")
+                return
+
+            salva_log(scelta, msg_attivo, lettura, presenza)
+
+            st.success("Registrazione completata")
+            st.link_button("HOME", HOME_URL)
+
+    # ===== SENZA MESSAGGIO =====
+
+    else:
+
+        st.warning("Nessuna indicazione per oggi")
+
+        if gia_confermato:
+            st.success("Presenza già registrata per questo PDV")
+            st.link_button("HOME", HOME_URL)
+            return
+
+        presenza = st.checkbox("Confermo presenza")
+
+        if st.button("CONFERMA PRESENZA"):
+
+            if not presenza:
+                st.error("Devi confermare la presenza")
+                return
+
+            salva_log(scelta, "NESSUN MESSAGGIO", False, presenza)
+
+            st.success("Presenza registrata")
+            st.link_button("HOME", HOME_URL)
+
+# ================= AREA ADMIN =================
+
+def admin():
+
+    st.title("🔒 DASHBOARD ADMIN")
+
+    if st.text_input("Password", type="password") != ADMIN_PASSWORD:
+        st.stop()
+
+    tab1, tab2, tab3 = st.tabs(
+        ["PDV", "Messaggi", "Report Log"]
+    )
+
+    # ----- PDV -----
+    with tab1:
+
+        testo = st.text_area("Incolla elenco ID;Nome")
+
+        if st.button("IMPORTA PDV"):
+            righe = [r.split(";") for r in testo.splitlines() if ";" in r]
+            df = pd.DataFrame(righe, columns=["ID", "Nome"])
+            save_csv(df, PDV_FILE)
+            st.success("Archivio aggiornato")
+
+        st.dataframe(load_csv(PDV_FILE, ["ID", "Nome"]))
+
+    # ----- MESSAGGI -----
+    with tab2:
+
+        pdv_df = load_csv(PDV_FILE, ["ID", "Nome"])
+
+        if pdv_df.empty:
+            st.warning("Caricare prima i PDV")
+            return
+
+        pdv = st.selectbox("PDV", pdv_df["Nome"])
+        msg = st.text_area("Messaggio")
+
+        inizio = st.date_input("Data inizio")
+        fine = st.date_input("Data fine")
+
+        if st.button("SALVA MESSAGGIO"):
+
+            df = load_csv(MSG_FILE,
+                          ["PDV", "Messaggio", "Inizio", "Fine"])
+
+            df.loc[len(df)] = [
+                pdv,
+                msg,
+                str(inizio),
+                str(fine)
+            ]
+
+            save_csv(df, MSG_FILE)
+            st.success("Messaggio salvato")
+
+        st.dataframe(load_csv(MSG_FILE,
+                              ["PDV", "Messaggio", "Inizio", "Fine"]))
+
+    # ----- LOG -----
+    with tab3:
+
+        df = load_csv(LOG_FILE,
+                      ["Data_Ora", "PDV", "Messaggio", "Lettura", "Presenza"])
+
+        st.dataframe(df, use_container_width=True)
+
+        st.download_button(
+            "Scarica CSV",
+            df.to_csv(index=False).encode("utf-8"),
+            "report.csv",
+            "text/csv"
+        )
+
+        buffer = io.BytesIO()
+        df.to_excel(buffer, index=False)
+
+        st.download_button(
+            "Scarica Excel",
+            buffer.getvalue(),
+            file_name="report.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        if st.button("PULISCI LOG"):
+            save_csv(df.iloc[0:0], LOG_FILE)
+            st.success("Log pulito")
+
+# ================= SWITCH =================
 
 params = st.query_params
 
 if "admingianari2026" in params:
     admin()
 else:
-    dipendenti()
-
-
+    dipendenti_view()
