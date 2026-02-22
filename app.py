@@ -240,7 +240,7 @@ def dipendenti():
 
     st.markdown(
         "<p style='text-align:center;'><b>"
-        "DIGITA LE PRIME LETTERE DELLA CITTA' PER TROVARE IL TUO PDV"
+        "Digita le prime lettere della Città per trovare il tuo PDV"
         "</b></p>",
         unsafe_allow_html=True)
 
@@ -272,7 +272,7 @@ def dipendenti():
 
     if not mostrati:
 
-        if st.checkbox("CONFERMA DI PRESENZA"):
+        if st.checkbox("Spunta CONFERMA DI PRESENZA"):
 
             new = pd.DataFrame([[
                 now_str(), scelta, "PRESENZA"
@@ -298,10 +298,10 @@ def dipendenti():
             else:
                 st.image(r["file"], width=350)
 
-        lettura = st.checkbox("CONFERMA DI LETTURA",
+        lettura = st.checkbox("Spunta di PRESA VISIONE",
                               key=r["msg"]+"l")
 
-        presenza = st.checkbox("CONFERMA DI PRESENZA",
+        presenza = st.checkbox("Spunta CONFERMA DI PRESENZA",
                                key=r["msg"]+"p")
 
         if lettura and presenza:
@@ -327,3 +327,4 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
