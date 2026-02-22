@@ -63,6 +63,20 @@ div[data-testid="stSuccess"] {
 div[data-testid="stSuccess"] p { color: #D50000 !important; }
 div[data-testid="stSuccess"] svg { fill: #D50000 !important; }
 
+/* ===== MESSAGGI OPERAZIONE — TESTO ROSSO ===== */
+div[data-testid="stAlert"] {
+  border: 2px solid #000 !important;
+}
+
+div[data-testid="stAlert"] p {
+  color: #D50000 !important;
+  font-weight: 800 !important;
+}
+
+div[data-testid="stAlert"] svg {
+  fill: #D50000 !important;
+}
+
 </style>
 """
 
@@ -328,5 +342,6 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
