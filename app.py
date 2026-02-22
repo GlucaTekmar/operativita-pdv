@@ -15,52 +15,53 @@ st.set_page_config(layout="wide")
 CSS_ADMIN = """
 <style>
 
-/* Sfondo grigio visibile */
-.stApp {
-    background-color: #E6E6E6;
+/* ===== PANNELLO "PRO" (solo look, zero logica) ===== */
+
+/* Sfondo admin grigio visibile */
+.stApp { background-color: #E6E6E6 !important; }
+
+/* Contenitore pagina più "card" */
+.block-container {
+  padding-top: 1.5rem !important;
+  padding-bottom: 2rem !important;
 }
 
-/* Titoli */
-h1, h2, h3 {
-    color: #000000;
-    font-weight: 800;
-}
+/* Sezioni: bordi e box (renderizza bene con i separatori) */
+hr { border: 1px solid #000 !important; }
 
-/* Etichette */
-label {
-    color: #000000 !important;
-    font-weight: 700 !important;
-}
-
-/* Input */
+/* Input più leggibili */
 input, textarea, select {
-    background-color: #FFFFFF !important;
-    color: #000000 !important;
-    border: 2px solid #000000 !important;
-    border-radius: 6px !important;
-    padding: 8px !important;
+  background: #fff !important;
+  color: #000 !important;
+  border: 2px solid #000 !important;
+  border-radius: 8px !important;
 }
 
-/* Pulsanti rossi */
-button[kind="secondary"],
-.stButton > button {
-    background-color: #D50000 !important;
-    color: #FFFFFF !important;
-    border: 1px solid #000000 !important;
-    font-weight: 700 !important;
-    border-radius: 8px !important;
-    padding: 8px 16px !important;
+/* Label nere e bold */
+label { color:#000 !important; font-weight:800 !important; }
+
+/* Pulsanti rosso aziendale */
+.stButton > button, .stDownloadButton > button {
+  background: #D50000 !important;
+  color: #fff !important;
+  border: 1px solid #000 !important;
+  font-weight: 800 !important;
+  border-radius: 10px !important;
+  padding: 10px 16px !important;
+}
+.stButton > button:hover, .stDownloadButton > button:hover {
+  background: #B30000 !important;
 }
 
-/* Hover */
-button:hover {
-    background-color: #B30000 !important;
+/* Messaggi di successo: testo rosso leggibile su azzurro */
+div[data-testid="stSuccess"] {
+  background-color: #E3F2FD !important;
+  color: #D50000 !important;
+  font-weight: 800 !important;
+  border: 2px solid #000 !important;
 }
-
-/* Separatori */
-hr {
-    border: 1px solid #000000;
-}
+div[data-testid="stSuccess"] p { color: #D50000 !important; }
+div[data-testid="stSuccess"] svg { fill: #D50000 !important; }
 
 </style>
 """
@@ -327,4 +328,5 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
