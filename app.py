@@ -7,6 +7,65 @@ from streamlit_quill import st_quill
 
 st.set_page_config(layout="wide")
 
+
+# =========================================================
+# 🎨 CSS DASHBOARD ADMIN (NUOVO)
+# =========================================================
+
+CSS_ADMIN = """
+<style>
+
+/* Sfondo grigio visibile */
+.stApp {
+    background-color: #E6E6E6;
+}
+
+/* Titoli */
+h1, h2, h3 {
+    color: #000000;
+    font-weight: 800;
+}
+
+/* Etichette */
+label {
+    color: #000000 !important;
+    font-weight: 700 !important;
+}
+
+/* Input */
+input, textarea, select {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 2px solid #000000 !important;
+    border-radius: 6px !important;
+    padding: 8px !important;
+}
+
+/* Pulsanti rossi */
+button[kind="secondary"],
+.stButton > button {
+    background-color: #D50000 !important;
+    color: #FFFFFF !important;
+    border: 1px solid #000000 !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    padding: 8px 16px !important;
+}
+
+/* Hover */
+button:hover {
+    background-color: #B30000 !important;
+}
+
+/* Separatori */
+hr {
+    border: 1px solid #000000;
+}
+
+</style>
+"""
+
+
 LOG_FILE = "log.csv"
 MSG_FILE = "messaggi.csv"
 PDV_FILE = "pdv.csv"
@@ -43,15 +102,8 @@ def excel_bytes(df):
 
 def admin():
 
-    st.markdown(
-        """
-        <style>
-        .stApp {background:#f2f2f2;}
-        textarea, input {background:white; border:2px solid black;}
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+    # 🔥 APPLICA DESIGN ADMIN
+    st.markdown(CSS_ADMIN, unsafe_allow_html=True)
 
     if os.path.exists("logo.png"):
         c1, c2, c3 = st.columns([1,2,1])
@@ -154,7 +206,7 @@ def admin():
 
 
 # =========================================================
-# DIPENDENTI
+# DIPENDENTI (INVARIATA)
 # =========================================================
 
 def dipendenti():
