@@ -77,6 +77,18 @@ div[data-testid="stAlert"] svg {
   fill: #D50000 !important;
 }
 
+/* ===== TITOLI/TESTI ADMIN LEGGIBILI ===== */
+h1, h2, h3, .stMarkdown, .stTextLabel, label {
+  color: #000 !important;
+  font-weight: 800 !important;
+}
+
+/* Se il titolo è un markdown h1 */
+div[data-testid="stMarkdownContainer"] h1 {
+  color: #000 !important;
+  font-weight: 900 !important;
+}
+
 </style>
 """
 
@@ -342,6 +354,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
