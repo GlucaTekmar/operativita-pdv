@@ -7,7 +7,75 @@ from streamlit_quill import st_quill
 
 st.set_page_config(layout="wide")
 
-CSS_ADMIN = """<style> .stApp { background-color: #E6E6E6 !important; } </style>"""
+
+# =========================================================
+# 🎨 CSS DASHBOARD ADMIN (NUOVO)
+# =========================================================
+
+CSS_ADMIN = """
+<style>
+
+/* ===== PANNELLO "PRO" (solo look, zero logica) ===== */
+
+/* Sfondo admin grigio visibile */
+.stApp { background-color: #E6E6E6 !important; }
+
+/* Contenitore pagina più "card" */
+.block-container {
+  padding-top: 1.5rem !important;
+  padding-bottom: 2rem !important;
+}
+
+/* Sezioni: bordi e box (renderizza bene con i separatori) */
+hr { border: 1px solid #000 !important; }
+
+/* Input più leggibili */
+input, textarea, select {
+  background: #fff !important;
+  color: #000 !important;
+  border: 2px solid #000 !important;
+  border-radius: 8px !important;
+}
+
+/* Label nere e bold */
+label { color:#000 !important; font-weight:800 !important; }
+
+/* Pulsanti rosso aziendale */
+.stButton > button, .stDownloadButton > button {
+  background: #D50000 !important;
+  color: #fff !important;
+  border: 1px solid #000 !important;
+  font-weight: 800 !important;
+  border-radius: 10px !important;
+  padding: 10px 16px !important;
+}
+.stButton > button:hover, .stDownloadButton > button:hover {
+  background: #B30000 !important;
+}
+
+/* Messaggi di successo */
+div[data-testid="stSuccess"] {
+  background-color: #E3F2FD !important;
+  color: #D50000 !important;
+  font-weight: 800 !important;
+  border: 2px solid #000 !important;
+}
+div[data-testid="stSuccess"] p { color: #D50000 !important; }
+div[data-testid="stSuccess"] svg { fill: #D50000 !important; }
+
+div[data-testid="stAlert"] p {
+  color: #D50000 !important;
+  font-weight: 800 !important;
+}
+
+h1, h2, h3, .stMarkdown, .stTextLabel, label {
+  color: #000 !important;
+  font-weight: 800 !important;
+}
+
+</style>
+"""
+
 
 LOG_FILE = "log.csv"
 MSG_FILE = "messaggi.csv"
@@ -61,13 +129,11 @@ def admin():
     st.markdown("---")
 
     # ===== PDV =====
-    st.header("IMPORTA LISTA PDV")
+    st.header("IMPORT LISTA PDV")
 
     pdv_text = st.text_area("", height=140)
 
-    c1, c2 = st.columns(2)
-
-    if c1.button("SALVA LISTA PDV"):
+    if st.button("SALVA LISTA PDV"):
 
         rows = []
         for line in pdv_text.splitlines():
@@ -78,19 +144,17 @@ def admin():
         save_csv(pd.DataFrame(rows, columns=["ID", "PDV"]), PDV_FILE)
         st.success("Lista PDV salvata")
 
-    if c2.button("PULISCI LISTA PDV"):
-        save_csv(pd.DataFrame(columns=["ID","PDV"]), PDV_FILE)
-        st.success("Lista PDV cancellata")
-
     st.markdown("---")
 
     # ===== MESSAGGIO =====
     st.header("CREA NUOVO MESSAGGIO")
 
+    st.write("FORMATTATORE TESTO")
+
     msg = st_quill(html=True)
 
     uploaded = st.file_uploader(
-        "ALLEGATO",
+        "ALLEGATO (immagine o PDF)",
         type=["png", "jpg", "jpeg", "pdf"]
     )
 
@@ -114,41 +178,16 @@ def admin():
             with open(filename, "wb") as f:
                 f.write(uploaded.getbuffer())
 
-        new = pd.DataFrame([[msg,
-                             data_inizio.strftime("%d-%m-%Y"),
-                             data_fine.strftime("%d-%m-%Y"),
-                             pdv_ids.strip(),
-                             filename]],
-                           columns=df.columns)
+        new = pd.DataFrame([[
+            msg,
+            data_inizio.strftime("%d-%m-%Y"),
+            data_fine.strftime("%d-%m-%Y"),
+            pdv_ids.strip(),
+            filename
+        ]], columns=df.columns)
 
         save_csv(pd.concat([df,new]), MSG_FILE)
         st.success("Messaggio salvato")
-
-    st.markdown("---")
-
-    # ===== STORICO MESSAGGI =====
-    st.header("STORICO MESSAGGI")
-
-    msg_df = load_csv(MSG_FILE,
-        ["msg","inizio","fine","pdv_ids","file"])
-
-    st.dataframe(msg_df, use_container_width=True)
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-        st.download_button("SCARICA CSV",
-                           msg_df.to_csv(index=False),
-                           "messaggi.csv")
-
-    with c2:
-        st.download_button("SCARICA EXCEL",
-                           excel_bytes(msg_df),
-                           "messaggi.xlsx")
-
-    if st.button("PULISCI MESSAGGI"):
-        save_csv(msg_df.iloc[0:0], MSG_FILE)
-        st.success("Messaggi cancellati")
 
     st.markdown("---")
 
@@ -159,42 +198,45 @@ def admin():
 
     st.dataframe(log, use_container_width=True)
 
-    pdv_filter = st.text_input("Filtra per PDV")
-    data_filter = st.text_input("Filtra per Data (gg-mm-aaaa)")
-
-    filtered = log.copy()
-
-    if pdv_filter:
-        filtered = filtered[filtered["pdv"].str.contains(pdv_filter, case=False)]
-
-    if data_filter:
-        filtered = filtered[filtered["data"].str.contains(data_filter)]
-
-    st.dataframe(filtered, use_container_width=True)
-
     c1, c2 = st.columns(2)
 
     with c1:
         st.download_button("SCARICA CSV",
-                           filtered.to_csv(index=False),
+                           log.to_csv(index=False),
                            "report.csv")
 
     with c2:
         st.download_button("SCARICA EXCEL",
-                           excel_bytes(filtered),
+                           excel_bytes(log),
                            "report.xlsx")
 
-    if st.button("PULISCI LOG (FILTRATI)"):
-        save_csv(log.drop(filtered.index), LOG_FILE)
-        st.success("Log selezionati rimossi")
+    if st.button("PULISCI LOG"):
+        save_csv(log.iloc[0:0], LOG_FILE)
+        st.success("Log pulito")
 
 
 # =========================================================
-# DIPENDENTI — INALTERATA
+# DIPENDENTI (IDENTICA — con messaggio generico aggiunto)
 # =========================================================
 
 def dipendenti():
-    st.markdown("""<style>.stApp {background:#c40000; color:white;}</style>""",
+
+    st.markdown("""
+    <style>
+    .stApp {background:#c40000; color:white;}
+    label, p, h1, h2, h3 {color:white !important;}
+    </style>
+    """, unsafe_allow_html=True)
+
+    if os.path.exists("logo.png"):
+        c1, c2, c3 = st.columns([1,2,1])
+        with c2:
+            st.image("logo.png", width=240)
+
+    st.markdown("<h1 style='text-align:center;'>INDICAZIONI OPERATIVE</h1>",
+                unsafe_allow_html=True)
+
+    st.markdown("<h3 style='text-align:center;'>SELEZIONA IL TUO PDV</h3>",
                 unsafe_allow_html=True)
 
     pdv_df = load_csv(PDV_FILE, ["ID","PDV"])
@@ -203,7 +245,14 @@ def dipendenti():
         st.warning("Archivio PDV vuoto")
         return
 
-    scelta = st.selectbox("", pdv_df["PDV"], index=None)
+    scelta = st.selectbox("", pdv_df["PDV"], index=None,
+                          placeholder="Digita la città...")
+
+    st.markdown(
+        "<p style='text-align:center;'><b>"
+        "Digita le prime lettere della Città per trovare il tuo PDV"
+        "</b></p>",
+        unsafe_allow_html=True)
 
     if not scelta:
         return
@@ -231,39 +280,54 @@ def dipendenti():
 
     log_df = load_csv(LOG_FILE, ["data","pdv","msg"])
 
+    # ===== QUI IL MESSAGGIO GENERICO =====
     if not mostrati:
 
-    st.markdown("""
-    <div style='
-        background:white;
-        color:black;
-        padding:20px;
-        border-radius:10px;
-        text-align:center;
-        font-weight:800;
-        font-size:18px;
-    '>
-    QUESTA MATTINA PER QUESTO PDV NON SONO PREVISTE PROMO/ATTIVITA' PARTICOLARI. BUON LAVORO
-    </div>
-    """, unsafe_allow_html=True)
+        st.markdown("""
+        <div style='
+            background:white;
+            color:black;
+            padding:20px;
+            border-radius:10px;
+            text-align:center;
+            font-weight:800;
+            font-size:18px;
+        '>
+        QUESTA MATTINA PER QUESTO PDV NON SONO PREVISTE PROMO/ATTIVITA' PARTICOLARI. BUON LAVORO
+        </div>
+        """, unsafe_allow_html=True)
 
-    if st.checkbox("Spunta CONFERMA DI PRESENZA"):
+        if st.checkbox("Spunta CONFERMA DI PRESENZA"):
 
-        new = pd.DataFrame([[
-            now_str(), scelta, "PRESENZA"
-        ]], columns=log_df.columns)
+            new = pd.DataFrame([[
+                now_str(), scelta, "PRESENZA"
+            ]], columns=log_df.columns)
 
-        save_csv(pd.concat([log_df,new]), LOG_FILE)
-        st.success("Presenza registrata")
+            save_csv(pd.concat([log_df,new]), LOG_FILE)
+            st.success("Presenza registrata")
 
-    return
+        return
 
     for r in mostrati:
 
+        st.markdown("---")
+
         st.markdown(r["msg"], unsafe_allow_html=True)
 
-        lettura = st.checkbox("PRESA VISIONE", key=r["msg"]+"l")
-        presenza = st.checkbox("CONFERMA PRESENZA", key=r["msg"]+"p")
+        if r["file"]:
+            if r["file"].lower().endswith(".pdf"):
+                with open(r["file"], "rb") as f:
+                    st.download_button("Scarica allegato",
+                                       f.read(),
+                                       r["file"])
+            else:
+                st.image(r["file"], width=350)
+
+        lettura = st.checkbox("Spunta di PRESA VISIONE",
+                              key=r["msg"]+"l")
+
+        presenza = st.checkbox("Spunta CONFERMA DI PRESENZA",
+                               key=r["msg"]+"p")
 
         if lettura and presenza:
 
@@ -272,8 +336,9 @@ def dipendenti():
 
             if not gia:
 
-                new = pd.DataFrame([[now_str(), scelta, r["msg"]]],
-                                   columns=log_df.columns)
+                new = pd.DataFrame([[
+                    now_str(), scelta, r["msg"]
+                ]], columns=log_df.columns)
 
                 save_csv(pd.concat([log_df,new]), LOG_FILE)
                 st.success("Registrato")
@@ -287,4 +352,3 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
-
