@@ -61,7 +61,7 @@ def admin():
     st.markdown("---")
 
     # ===== PDV =====
-    st.header("IMPORT LISTA PDV")
+    st.header("IMPORTA LISTA PDV")
 
     pdv_text = st.text_area("", height=140)
 
@@ -233,15 +233,30 @@ def dipendenti():
 
     if not mostrati:
 
-        if st.checkbox("Spunta CONFERMA DI PRESENZA"):
+    st.markdown("""
+    <div style='
+        background:white;
+        color:black;
+        padding:20px;
+        border-radius:10px;
+        text-align:center;
+        font-weight:800;
+        font-size:18px;
+    '>
+    QUESTA MATTINA PER QUESTO PDV NON SONO PREVISTE PROMO/ATTIVITA' PARTICOLARI. BUON LAVORO
+    </div>
+    """, unsafe_allow_html=True)
 
-            new = pd.DataFrame([[now_str(), scelta, "PRESENZA"]],
-                               columns=log_df.columns)
+    if st.checkbox("Spunta CONFERMA DI PRESENZA"):
 
-            save_csv(pd.concat([log_df,new]), LOG_FILE)
-            st.success("Presenza registrata")
+        new = pd.DataFrame([[
+            now_str(), scelta, "PRESENZA"
+        ]], columns=log_df.columns)
 
-        return
+        save_csv(pd.concat([log_df,new]), LOG_FILE)
+        st.success("Presenza registrata")
+
+    return
 
     for r in mostrati:
 
@@ -272,3 +287,4 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
