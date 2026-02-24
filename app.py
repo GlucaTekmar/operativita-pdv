@@ -384,8 +384,6 @@ def dipendenti():
     pdv_id = pdv_df.loc[pdv_df["PDV"] == scelta, "ID"].values[0]
     pdv_id = str(pdv_id).strip()
 
-    st.link_button("HOME", HOME_URL)
-
     msg_df = load_csv(MSG_FILE, ["msg", "inizio", "fine", "pdv_ids", "file"])
     oggi = datetime.now().date()
     mostrati = []
@@ -405,7 +403,6 @@ def dipendenti():
 
     # ===== MESSAGGIO GENERICO =====
     if not mostrati:
-
         st.markdown("""
         <div class='msgbox' style='text-align:center;font-weight:800;font-size:18px;'>
         QUESTA MATTINA PER QUESTO PDV NON SONO PREVISTE PROMO/ATTIVITA' PARTICOLARI. BUON LAVORO
@@ -422,31 +419,38 @@ def dipendenti():
 
     # ===== MESSAGGI OPERATIVI =====
     for i, r in enumerate(mostrati):
+        file_path = None
+
+        # costruisci box con testo messaggio + (se immagine) dentro box
+        box_html = f"<div class='msgbox'>{r['msg']}"
+
+        if r["file"]:
+            file_path = os.path.join(UPLOAD_DIR, r["file"])
+            if os.path.exists(file_path):
+                if r["file"].lower().endswith(".pdf"):
+                    box_html += "<br><br><b>Allegato PDF disponibile sotto</b>"
+                else:
+                    try:
+                        b64 = base64.b64encode(open(file_path, "rb").read()).decode()
+                        ext = os.path.splitext(r["file"])[1].lower().replace(".", "")
+                        if ext == "jpg":
+                            ext = "jpeg"
+                        box_html += f"<br><br><img src='data:image/{ext};base64,{b64}' style='max-width:100%;height:auto;'>"
+                    except Exception:
+                        pass
+
+        box_html += "</div>"
 
         st.markdown("---")
-       box_html = f"<div class='msgbox'>{r['msg']}"
+        st.markdown(box_html, unsafe_allow_html=True)
 
-if r["file"]:
-    path = os.path.join(UPLOAD_DIR, r["file"])
-    if os.path.exists(path):
-        if r["file"].lower().endswith(".pdf"):
-            box_html += "<br><b>Allegato PDF disponibile sotto</b>"
-        else:
-            box_html += f"<br><img src='data:image/png;base64,{base64.b64encode(open(path,'rb').read()).decode()}' width='400'>"
-
-box_html += "</div>"
-
-st.markdown(box_html, unsafe_allow_html=True)
-
-# download PDF fuori (Streamlit non supporta download in HTML)
-if r["file"] and r["file"].lower().endswith(".pdf"):
-    with open(path, "rb") as f:
-        st.download_button("Scarica allegato", f.read(), r["file"])
+        # se PDF: download fuori (Streamlit)
+        if r["file"] and file_path and os.path.exists(file_path) and r["file"].lower().endswith(".pdf"):
+            with open(file_path, "rb") as f:
+                st.download_button("Scarica allegato", f.read(), r["file"], key=f"dl_{pdv_id}_{i}")
 
         lettura = st.checkbox("Spunta di PRESA VISIONE", key=f"l_{pdv_id}_{i}")
         presenza = st.checkbox("Spunta CONFERMA DI PRESENZA", key=f"p_{pdv_id}_{i}")
-
-        st.link_button("HOME", HOME_URL)
 
         if lettura and presenza:
             gia = ((log_df["pdv"] == scelta) & (log_df["msg"] == r["msg"])).any()
@@ -455,6 +459,8 @@ if r["file"] and r["file"].lower().endswith(".pdf"):
                 save_csv(pd.concat([log_df, new], ignore_index=True), LOG_FILE)
                 st.success("Registrato")
 
+        st.link_button("HOME", HOME_URL)
+
 # =========================================================
 # ROUTER
 # =========================================================
@@ -462,6 +468,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
