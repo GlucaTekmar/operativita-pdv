@@ -137,9 +137,9 @@ def first_line_title(html_msg: str) -> str:
 
 def stato_msg(inizio: str, fine: str) -> str:
     try:
-        di = datetime.strptime(inizio, "%d-%m-%Y")
-        df = datetime.strptime(fine, "%d-%m-%Y")
-        oggi = datetime.now()
+        di = datetime.strptime(inizio, "%d-%m-%Y").date()
+        df = datetime.strptime(fine, "%d-%m-%Y").date()
+        oggi = datetime.now().date()
         return "ATTIVO" if di <= oggi <= df else "CHIUSO"
     except Exception:
         return ""
@@ -453,5 +453,6 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
