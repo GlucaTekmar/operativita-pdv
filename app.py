@@ -48,7 +48,7 @@ hr { border: 1px solid #000 !important; }
 /* Input più leggibili */
 input, textarea, select {
   background: #fff !important;
-  color: #000 !important;
+  color: #D50000 !important;
   border: 2px solid #000 !important;
   border-radius: 8px !important;
 }
@@ -471,3 +471,4 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
