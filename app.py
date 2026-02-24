@@ -431,6 +431,7 @@ QUESTA MATTINA PER QUESTO PDV NON SONO PREVISTE PROMO/ATTIVITA' PARTICOLARI. BUO
             save_csv(pd.concat([log_df, new], ignore_index=True), LOG_FILE)
             st.success("Presenza registrata")
 
+st.link_button("HOME", HOME_URL)
         return
 
     for r in mostrati:
@@ -449,13 +450,14 @@ QUESTA MATTINA PER QUESTO PDV NON SONO PREVISTE PROMO/ATTIVITA' PARTICOLARI. BUO
         lettura = st.checkbox("Spunta di PRESA VISIONE", key=f"l_{pdv_id}_{i}")
         presenza = st.checkbox("Spunta CONFERMA DI PRESENZA", key=f"p_{pdv_id}_{i}")
 
+        st.link_button("HOME", HOME_URL)
+        
         if lettura and presenza:
             gia = ((log_df["pdv"] == scelta) & (log_df["msg"] == r["msg"])).any()
             if not gia:
                 new = pd.DataFrame([[now_str(), scelta, r["msg"]]], columns=log_df.columns)
                 save_csv(pd.concat([log_df, new], ignore_index=True), LOG_FILE)
                 st.success("Registrato")
-
 
 # =========================================================
 # ROUTER
@@ -464,6 +466,4 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
-
-
 
