@@ -419,19 +419,12 @@ def dipendenti():
     log_df = load_csv(LOG_FILE, ["data", "pdv", "msg"])
 
     if not mostrati:
-        st.markdown("""
-        <div style='
-            background:white;
-            color:black;
-            padding:20px;
-            border-radius:10px;
-            text-align:center;
-            font-weight:800;
-            font-size:18px;
-        '>
-        QUESTA MATTINA PER QUESTO PDV NON SONO PREVISTE PROMO/ATTIVITA' PARTICOLARI. BUON LAVORO
-        </div>
-        """, unsafe_allow_html=True)
+        
+st.markdown("""
+<div class='msgbox' style='text-align:center;font-weight:800;font-size:18px;'>
+QUESTA MATTINA PER QUESTO PDV NON SONO PREVISTE PROMO/ATTIVITA' PARTICOLARI. BUON LAVORO
+</div>
+""", unsafe_allow_html=True)
 
         if st.checkbox("Spunta CONFERMA DI PRESENZA"):
             new = pd.DataFrame([[now_str(), scelta, "PRESENZA"]], columns=log_df.columns)
@@ -442,7 +435,7 @@ def dipendenti():
 
     for r in mostrati:
         st.markdown("---")
-        st.markdown(r["msg"], unsafe_allow_html=True)
+        st.markdown(f"<div class='msgbox'>{r['msg']}</div>", unsafe_allow_html=True)
 
         if r["file"]:
             path = os.path.join(UPLOAD_DIR, r["file"])
@@ -453,8 +446,8 @@ def dipendenti():
                 else:
                     st.image(path, width=350)
 
-        lettura = st.checkbox("Spunta di PRESA VISIONE", key=r["msg"] + "l")
-        presenza = st.checkbox("Spunta CONFERMA DI PRESENZA", key=r["msg"] + "p")
+        lettura = st.checkbox("Spunta di PRESA VISIONE", key=f"l_{pdv_id}_{i}")
+        presenza = st.checkbox("Spunta CONFERMA DI PRESENZA", key=f"p_{pdv_id}_{i}")
 
         if lettura and presenza:
             gia = ((log_df["pdv"] == scelta) & (log_df["msg"] == r["msg"])).any()
@@ -471,5 +464,6 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
