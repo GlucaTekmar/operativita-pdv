@@ -73,6 +73,15 @@ h1, h2, h3, .stMarkdown, label {
   color: #000 !important;
   font-weight: 800 !important;
 }
+/* Testo file caricato leggibile */
+div[data-testid="stFileUploader"] span {
+  color: #000 !important;
+}
+
+div[data-testid="stFileUploader"] p {
+  color: #000 !important;
+}
+
 </style>
 """
 
@@ -441,3 +450,4 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
