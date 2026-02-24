@@ -346,11 +346,11 @@ def dipendenti():
     st.markdown("""
     <style>
     .msgbox{
-      background:#ffffff;
-      color:#000000;
-      padding:24px;
-      border-radius:12px;
-      width:100%;
+        background:#ffffff;
+        color:#000000;
+        padding:24px;
+        border-radius:12px;
+        width:100%;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -402,7 +402,9 @@ def dipendenti():
 
     log_df = load_csv(LOG_FILE, ["data", "pdv", "msg"])
 
+    # ===== MESSAGGIO GENERICO =====
     if not mostrati:
+
         st.markdown("""
         <div class='msgbox' style='text-align:center;font-weight:800;font-size:18px;'>
         QUESTA MATTINA PER QUESTO PDV NON SONO PREVISTE PROMO/ATTIVITA' PARTICOLARI. BUON LAVORO
@@ -417,7 +419,9 @@ def dipendenti():
         st.link_button("HOME", HOME_URL)
         return
 
+    # ===== MESSAGGI OPERATIVI =====
     for i, r in enumerate(mostrati):
+
         st.markdown("---")
         st.markdown(f"<div class='msgbox'>{r['msg']}</div>", unsafe_allow_html=True)
 
@@ -442,7 +446,6 @@ def dipendenti():
                 save_csv(pd.concat([log_df, new], ignore_index=True), LOG_FILE)
                 st.success("Registrato")
 
-
 # =========================================================
 # ROUTER
 # =========================================================
@@ -450,4 +453,5 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
