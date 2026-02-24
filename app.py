@@ -370,23 +370,23 @@ def dipendenti():
     </style>
     """, unsafe_allow_html=True)
 
-st.markdown("""
-<style>
-/* contenitore bianco full width per messaggi */
-.msgbox{
-  background:#ffffff;
-  color:#000000;
-  padding:24px;
-  border-radius:12px;
-  width:100%;
+   st.markdown("""
+   <style>
+   /* contenitore bianco full width per messaggi */
+   .msgbox{
+   background:#ffffff;
+   color:#000000;
+   padding:24px;
+   border-radius:12px;
+   width:100%;
 }
 </style>
 """, unsafe_allow_html=True)
     
-    if os.path.exists("logo.png"):
-        c1, c2, c3 = st.columns([1, 2, 1])
-        with c2:
-            st.image("logo.png", width=240)
+if os.path.exists("logo.png"):
+    c1, c2, c3 = st.columns([1, 2, 1])
+    with c2:
+        st.image("logo.png", width=240)
 
     st.markdown("<h1 style='text-align:center;'>INDICAZIONI OPERATIVE</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align:center;'>SELEZIONA IL TUO PDV</h3>", unsafe_allow_html=True)
@@ -479,5 +479,6 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
