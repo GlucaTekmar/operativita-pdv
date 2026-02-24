@@ -6,6 +6,7 @@ from io import BytesIO
 from streamlit_quill import st_quill
 import re
 import html
+import base64
 
 st.set_page_config(layout="wide")
 
@@ -423,16 +424,24 @@ def dipendenti():
     for i, r in enumerate(mostrati):
 
         st.markdown("---")
-        st.markdown(f"<div class='msgbox'>{r['msg']}</div>", unsafe_allow_html=True)
+       box_html = f"<div class='msgbox'>{r['msg']}"
 
-        if r["file"]:
-            path = os.path.join(UPLOAD_DIR, r["file"])
-            if os.path.exists(path):
-                if r["file"].lower().endswith(".pdf"):
-                    with open(path, "rb") as f:
-                        st.download_button("Scarica allegato", f.read(), r["file"])
-                else:
-                    st.image(path, width=350)
+if r["file"]:
+    path = os.path.join(UPLOAD_DIR, r["file"])
+    if os.path.exists(path):
+        if r["file"].lower().endswith(".pdf"):
+            box_html += "<br><b>Allegato PDF disponibile sotto</b>"
+        else:
+            box_html += f"<br><img src='data:image/png;base64,{base64.b64encode(open(path,'rb').read()).decode()}' width='400'>"
+
+box_html += "</div>"
+
+st.markdown(box_html, unsafe_allow_html=True)
+
+# download PDF fuori (Streamlit non supporta download in HTML)
+if r["file"] and r["file"].lower().endswith(".pdf"):
+    with open(path, "rb") as f:
+        st.download_button("Scarica allegato", f.read(), r["file"])
 
         lettura = st.checkbox("Spunta di PRESA VISIONE", key=f"l_{pdv_id}_{i}")
         presenza = st.checkbox("Spunta CONFERMA DI PRESENZA", key=f"p_{pdv_id}_{i}")
@@ -453,6 +462,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
