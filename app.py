@@ -16,7 +16,6 @@ st.set_page_config(layout="wide")
 DATA_DIR = "/var/dati"
 UPLOAD_DIR = "/var/dati/uploads"
 
-# crea SOLO la sottocartella uploads (NON creare il mount)
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
@@ -28,35 +27,21 @@ HOME_URL = "https://eu.jotform.com/it/app/build/253605296903360"
 
 
 # =========================================================
-# 🎨 CSS DASHBOARD ADMIN (invariato + success rosso leggibile)
+# 🎨 CSS DASHBOARD ADMIN
 # =========================================================
 CSS_ADMIN = """
 <style>
-
-/* Sfondo admin grigio visibile */
 .stApp { background-color: #E6E6E6 !important; }
-
-/* Contenitore pagina più "card" */
-.block-container {
-  padding-top: 1.5rem !important;
-  padding-bottom: 2rem !important;
-}
-
-/* Sezioni: bordi e box (renderizza bene con i separatori) */
+.block-container { padding-top: 1.5rem !important; padding-bottom: 2rem !important; }
 hr { border: 1px solid #000 !important; }
-
-/* Input più leggibili */
 input, textarea, select {
   background: #fff !important;
   color: #D50000 !important;
   border: 2px solid #000 !important;
   border-radius: 8px !important;
 }
-
-/* Label nere e bold */
 label { color:#000 !important; font-weight:800 !important; }
 
-/* Pulsanti rosso aziendale */
 .stButton > button, .stDownloadButton > button {
   background: #D50000 !important;
   color: #fff !important;
@@ -69,39 +54,25 @@ label { color:#000 !important; font-weight:800 !important; }
   background: #B30000 !important;
 }
 
-/* Success: testo ROSSO (leggibile) */
 div[data-testid="stSuccess"] {
   background-color: #E3F2FD !important;
   color: #D50000 !important;
   font-weight: 800 !important;
   border: 2px solid #000 !important;
 }
-div[data-testid="stSuccess"] p { color: #D50000 !important; }
+div[data-testid="stSuccess"] p,
 div[data-testid="stSuccess"] span { color: #D50000 !important; }
-div[data-testid="stSuccess"] svg { fill: #D50000 !important; }
 
-/* Alert testo rosso */
-div[data-testid="stAlert"] {
-  border: 2px solid #000 !important;
-}
+div[data-testid="stAlert"] { border: 2px solid #000 !important; }
 div[data-testid="stAlert"] p {
   color: #D50000 !important;
   font-weight: 800 !important;
 }
-div[data-testid="stAlert"] svg {
-  fill: #D50000 !important;
-}
 
-/* Titoli/ testi admin */
-h1, h2, h3, .stMarkdown, .stTextLabel, label {
+h1, h2, h3, .stMarkdown, label {
   color: #000 !important;
   font-weight: 800 !important;
 }
-div[data-testid="stMarkdownContainer"] h1 {
-  color: #000 !important;
-  font-weight: 900 !important;
-}
-
 </style>
 """
 
@@ -140,7 +111,6 @@ def normalize_lines(text: str) -> str:
 
 
 def strip_html_to_text(s: str) -> str:
-    # rimuove tag base + decode entità
     s = s or ""
     s = re.sub(r"<br\s*/?>", "\n", s, flags=re.IGNORECASE)
     s = re.sub(r"</p\s*>", "\n", s, flags=re.IGNORECASE)
@@ -195,168 +165,162 @@ def admin():
         st.warning("Inserire password admin")
         return
 
-    # aggiornamento pagina senza logout
     if st.button("AGGIORNA"):
         st.rerun()
 
-    st.markdown("---")
+    # ===== DIVISIONE PAGINE ADMIN =====
+    tab_operativo, tab_report = st.tabs(["OPERATIVO", "REPORT"])
 
-    # ===== PDV =====
-    st.header("IMPORT LISTA PDV")
+    # ================= OPERATIVO =================
+    with tab_operativo:
 
-    pdv_existing = load_csv(PDV_FILE, ["ID", "PDV"])
-    prefill = "\n".join([f"{r['ID']};{r['PDV']}" for _, r in pdv_existing.iterrows()])
+        st.header("IMPORT LISTA PDV")
 
-    pdv_text = st.text_area("", value=prefill, height=140)
+        pdv_existing = load_csv(PDV_FILE, ["ID", "PDV"])
+        prefill = "\n".join([f"{r['ID']};{r['PDV']}" for _, r in pdv_existing.iterrows()])
+        pdv_text = st.text_area("", value=prefill, height=140)
 
-    c1, c2 = st.columns(2)
+        c1, c2 = st.columns(2)
 
-    with c1:
-        if st.button("SALVA LISTA PDV"):
-            rows = []
-            for line in pdv_text.splitlines():
-                if ";" in line:
-                    a, b = line.split(";", 1)
-                    rows.append([a.strip(), b.strip()])
-            save_csv(pd.DataFrame(rows, columns=["ID", "PDV"]), PDV_FILE)
-            st.success("Lista PDV salvata")
+        with c1:
+            if st.button("SALVA LISTA PDV"):
+                rows = []
+                for line in pdv_text.splitlines():
+                    if ";" in line:
+                        a, b = line.split(";", 1)
+                        rows.append([a.strip(), b.strip()])
+                save_csv(pd.DataFrame(rows, columns=["ID", "PDV"]), PDV_FILE)
+                st.success("Lista PDV salvata")
 
-    with c2:
-        if st.button("PULISCI LISTA PDV"):
-            save_csv(pd.DataFrame(columns=["ID", "PDV"]), PDV_FILE)
-            st.success("Lista PDV pulita")
+        with c2:
+            if st.button("PULISCI LISTA PDV"):
+                save_csv(pd.DataFrame(columns=["ID", "PDV"]), PDV_FILE)
+                st.success("Lista PDV pulita")
 
-    st.markdown("---")
+        st.markdown("---")
 
-    # ===== MESSAGGIO =====
-    st.header("CREA NUOVO MESSAGGIO")
-    st.write("FORMATTATORE TESTO")
+        st.header("CREA NUOVO MESSAGGIO")
+        st.write("FORMATTATORE TESTO")
 
-    msg = st_quill(html=True)
+        msg = st_quill(html=True)
 
-    uploaded = st.file_uploader(
-        "ALLEGATO (immagine o PDF)",
-        type=["png", "jpg", "jpeg", "pdf"]
-    )
-
-    c1, c2 = st.columns(2)
-    with c1:
-        data_inizio = st.date_input("DATA INIZIO")
-    with c2:
-        data_fine = st.date_input("DATA FINE")
-
-    pdv_ids = st.text_area("ID PDV (uno per riga)", height=140)
-
-    if st.button("SALVA MESSAGGIO"):
-        df = load_csv(MSG_FILE, ["msg", "inizio", "fine", "pdv_ids", "file"])
-
-        filename = ""
-        if uploaded:
-            filename = uploaded.name
-            with open(os.path.join(UPLOAD_DIR, filename), "wb") as f:
-                f.write(uploaded.getbuffer())
-
-        new = pd.DataFrame([[
-            msg,
-            data_inizio.strftime("%d-%m-%Y"),
-            data_fine.strftime("%d-%m-%Y"),
-            normalize_lines(pdv_ids),
-            filename
-        ]], columns=df.columns)
-
-        save_csv(pd.concat([df, new], ignore_index=True), MSG_FILE)
-        st.success("Messaggio salvato")
-
-    st.markdown("---")
-
-    # ===== STORICO MESSAGGI =====
-    st.header("STORICO MESSAGGI")
-
-    msg_df = load_csv(MSG_FILE, ["msg", "inizio", "fine", "pdv_ids", "file"])
-
-    # vista tabella (richiesta): 1ª riga, stato, senza FILE
-    view = msg_df.copy()
-    if not view.empty:
-        view.insert(0, "N°", range(1, len(view) + 1))
-        view["MESSAGGIO"] = view["msg"].apply(first_line_title)
-        view["STATO"] = view.apply(lambda r: stato_msg(r["inizio"], r["fine"]), axis=1)
-        view = view[["N°", "MESSAGGIO", "inizio", "fine", "STATO", "pdv_ids"]]
-
-    st.dataframe(view, use_container_width=True)
-
-    # apri/visualizza/copia messaggio (stabile)
-    if not msg_df.empty:
-        idx_open = st.number_input("Apri messaggio (N°)", min_value=0, max_value=len(msg_df), value=0, step=1)
-        if idx_open and 1 <= idx_open <= len(msg_df):
-            r = msg_df.iloc[idx_open - 1]
-            st.text_area("Contenuto messaggio (copiabile)", r["msg"], height=260)
-
-    # rimozione manuale righe messaggi
-    if not msg_df.empty:
-        del_idx = st.multiselect(
-            "Rimuovi manualmente messaggi (seleziona N°)",
-            options=list(range(1, len(msg_df) + 1))
+        uploaded = st.file_uploader(
+            "ALLEGATO (immagine o PDF)",
+            type=["png", "jpg", "jpeg", "pdf"]
         )
-        if st.button("ELIMINA RIGHE MESSAGGI SELEZIONATE"):
-            if del_idx:
-                keep = msg_df.drop(index=[i - 1 for i in del_idx]).reset_index(drop=True)
-                save_csv(keep, MSG_FILE)
-                st.success("Righe messaggi eliminate")
+
+        c1, c2 = st.columns(2)
+        with c1:
+            data_inizio = st.date_input("DATA INIZIO")
+        with c2:
+            data_fine = st.date_input("DATA FINE")
+
+        pdv_ids = st.text_area("ID PDV (uno per riga)", height=140)
+
+        if st.button("SALVA MESSAGGIO"):
+            df = load_csv(MSG_FILE, ["msg", "inizio", "fine", "pdv_ids", "file"])
+
+            filename = ""
+            if uploaded:
+                filename = uploaded.name
+                with open(os.path.join(UPLOAD_DIR, filename), "wb") as f:
+                    f.write(uploaded.getbuffer())
+
+            new = pd.DataFrame([[
+                msg,
+                data_inizio.strftime("%d-%m-%Y"),
+                data_fine.strftime("%d-%m-%Y"),
+                normalize_lines(pdv_ids),
+                filename
+            ]], columns=df.columns)
+
+            save_csv(pd.concat([df, new], ignore_index=True), MSG_FILE)
+            st.success("Messaggio salvato")
+
+    # ================= REPORT =================
+    with tab_report:
+
+        st.header("STORICO MESSAGGI")
+
+        msg_df = load_csv(MSG_FILE, ["msg", "inizio", "fine", "pdv_ids", "file"])
+
+        view = msg_df.copy()
+        if not view.empty:
+            view.insert(0, "N°", range(1, len(view) + 1))
+            view["MESSAGGIO"] = view["msg"].apply(first_line_title)
+            view["STATO"] = view.apply(lambda r: stato_msg(r["inizio"], r["fine"]), axis=1)
+            view = view[["N°", "MESSAGGIO", "inizio", "fine", "STATO", "pdv_ids"]]
+
+        st.dataframe(view, use_container_width=True)
+
+        if not msg_df.empty:
+            idx_open = st.number_input("Apri messaggio (N°)", min_value=0, max_value=len(msg_df), value=0, step=1)
+            if idx_open and 1 <= idx_open <= len(msg_df):
+                r = msg_df.iloc[idx_open - 1]
+                st.text_area("Contenuto messaggio (copiabile)", r["msg"], height=260)
+
+        if not msg_df.empty:
+            del_idx = st.multiselect(
+                "Rimuovi manualmente messaggi (seleziona N°)",
+                options=list(range(1, len(msg_df) + 1))
+            )
+            if st.button("ELIMINA RIGHE MESSAGGI SELEZIONATE"):
+                if del_idx:
+                    keep = msg_df.drop(index=[i - 1 for i in del_idx]).reset_index(drop=True)
+                    save_csv(keep, MSG_FILE)
+                    st.success("Righe messaggi eliminate")
+                    st.rerun()
+
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.download_button("SCARICA CSV", msg_df.to_csv(index=False), "messaggi.csv")
+        with c2:
+            st.download_button("SCARICA EXCEL", excel_bytes(msg_df), "messaggi.xlsx")
+        with c3:
+            if st.button("PULISCI MESSAGGI"):
+                save_csv(msg_df.iloc[0:0], MSG_FILE)
+                st.success("Messaggi puliti")
                 st.rerun()
 
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.download_button("SCARICA CSV", msg_df.to_csv(index=False), "messaggi.csv")
-    with c2:
-        st.download_button("SCARICA EXCEL", excel_bytes(msg_df), "messaggi.xlsx")
-    with c3:
-        if st.button("PULISCI MESSAGGI"):
-            save_csv(msg_df.iloc[0:0], MSG_FILE)
-            st.success("Messaggi puliti")
-            st.rerun()
+        st.markdown("---")
 
-    st.markdown("---")
+        st.header("REPORT LOG")
 
-    # ===== REPORT LOG =====
-    st.header("REPORT LOG")
+        log = load_csv(LOG_FILE, ["data", "pdv", "msg"])
 
-    log = load_csv(LOG_FILE, ["data", "pdv", "msg"])
+        log_view = log.copy()
+        if not log_view.empty:
+            log_view.insert(0, "N°", range(1, len(log_view) + 1))
+            log_view["messaggio"] = log_view["msg"].apply(
+                lambda m: "GENERICO" if m in ("PRESENZA", "GENERICO") else first_line_title(m)
+            )
+            log_view["stato"] = log_view["msg"].apply(lambda m: stato_da_fullmsg(m, msg_df))
+            log_view = log_view[["N°", "data", "pdv", "messaggio", "stato"]]
 
-    # vista log con campi richiesti: messaggio (titolo) + stato
-    log_view = log.copy()
-    if not log_view.empty:
-        log_view.insert(0, "N°", range(1, len(log_view) + 1))
-        log_view["messaggio"] = log_view["msg"].apply(
-            lambda m: "GENERICO" if m in ("PRESENZA", "GENERICO") else first_line_title(m)
-        )
-        log_view["stato"] = log_view["msg"].apply(lambda m: stato_da_fullmsg(m, msg_df))
-        log_view = log_view[["N°", "data", "pdv", "messaggio", "stato"]]
+        st.dataframe(log_view, use_container_width=True)
 
-    st.dataframe(log_view, use_container_width=True)
+        if not log.empty:
+            del_log_idx = st.multiselect(
+                "Rimuovi manualmente righe LOG (seleziona N°)",
+                options=list(range(1, len(log) + 1))
+            )
+            if st.button("ELIMINA RIGHE LOG SELEZIONATE"):
+                if del_log_idx:
+                    keep = log.drop(index=[i - 1 for i in del_log_idx]).reset_index(drop=True)
+                    save_csv(keep, LOG_FILE)
+                    st.success("Righe log eliminate")
+                    st.rerun()
 
-    # rimozione manuale righe log
-    if not log.empty:
-        del_log_idx = st.multiselect(
-            "Rimuovi manualmente righe LOG (seleziona N°)",
-            options=list(range(1, len(log) + 1))
-        )
-        if st.button("ELIMINA RIGHE LOG SELEZIONATE"):
-            if del_log_idx:
-                keep = log.drop(index=[i - 1 for i in del_log_idx]).reset_index(drop=True)
-                save_csv(keep, LOG_FILE)
-                st.success("Righe log eliminate")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.download_button("SCARICA CSV", log.to_csv(index=False), "report.csv")
+        with c2:
+            st.download_button("SCARICA EXCEL", excel_bytes(log), "report.xlsx")
+        with c3:
+            if st.button("PULISCI LOG"):
+                save_csv(log.iloc[0:0], LOG_FILE)
+                st.success("Log pulito")
                 st.rerun()
-
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.download_button("SCARICA CSV", log.to_csv(index=False), "report.csv")
-    with c2:
-        st.download_button("SCARICA EXCEL", excel_bytes(log), "report.xlsx")
-    with c3:
-        if st.button("PULISCI LOG"):
-            save_csv(log.iloc[0:0], LOG_FILE)
-            st.success("Log pulito")
-            st.rerun()
 
 
 # =========================================================
@@ -370,23 +334,22 @@ def dipendenti():
     </style>
     """, unsafe_allow_html=True)
 
-   st.markdown("""
-   <style>
-   /* contenitore bianco full width per messaggi */
-   .msgbox{
-   background:#ffffff;
-   color:#000000;
-   padding:24px;
-   border-radius:12px;
-   width:100%;
-}
-</style>
-""", unsafe_allow_html=True)
-    
-if os.path.exists("logo.png"):
-    c1, c2, c3 = st.columns([1, 2, 1])
-    with c2:
-        st.image("logo.png", width=240)
+    st.markdown("""
+    <style>
+    .msgbox{
+      background:#ffffff;
+      color:#000000;
+      padding:24px;
+      border-radius:12px;
+      width:100%;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    if os.path.exists("logo.png"):
+        c1, c2, c3 = st.columns([1, 2, 1])
+        with c2:
+            st.image("logo.png", width=240)
 
     st.markdown("<h1 style='text-align:center;'>INDICAZIONI OPERATIVE</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align:center;'>SELEZIONA IL TUO PDV</h3>", unsafe_allow_html=True)
@@ -411,7 +374,6 @@ if os.path.exists("logo.png"):
     pdv_id = pdv_df.loc[pdv_df["PDV"] == scelta, "ID"].values[0]
     pdv_id = str(pdv_id).strip()
 
-    # HOME (link Jotform)
     st.link_button("HOME", HOME_URL)
 
     msg_df = load_csv(MSG_FILE, ["msg", "inizio", "fine", "pdv_ids", "file"])
@@ -432,22 +394,21 @@ if os.path.exists("logo.png"):
     log_df = load_csv(LOG_FILE, ["data", "pdv", "msg"])
 
     if not mostrati:
-        
-st.markdown("""
-<div class='msgbox' style='text-align:center;font-weight:800;font-size:18px;'>
-QUESTA MATTINA PER QUESTO PDV NON SONO PREVISTE PROMO/ATTIVITA' PARTICOLARI. BUON LAVORO
-</div>
-""", unsafe_allow_html=True)
+        st.markdown("""
+        <div class='msgbox' style='text-align:center;font-weight:800;font-size:18px;'>
+        QUESTA MATTINA PER QUESTO PDV NON SONO PREVISTE PROMO/ATTIVITA' PARTICOLARI. BUON LAVORO
+        </div>
+        """, unsafe_allow_html=True)
 
         if st.checkbox("Spunta CONFERMA DI PRESENZA"):
             new = pd.DataFrame([[now_str(), scelta, "PRESENZA"]], columns=log_df.columns)
             save_csv(pd.concat([log_df, new], ignore_index=True), LOG_FILE)
             st.success("Presenza registrata")
 
-st.link_button("HOME", HOME_URL)
+        st.link_button("HOME", HOME_URL)
         return
 
-    for r in mostrati:
+    for i, r in enumerate(mostrati):
         st.markdown("---")
         st.markdown(f"<div class='msgbox'>{r['msg']}</div>", unsafe_allow_html=True)
 
@@ -464,13 +425,14 @@ st.link_button("HOME", HOME_URL)
         presenza = st.checkbox("Spunta CONFERMA DI PRESENZA", key=f"p_{pdv_id}_{i}")
 
         st.link_button("HOME", HOME_URL)
-        
+
         if lettura and presenza:
             gia = ((log_df["pdv"] == scelta) & (log_df["msg"] == r["msg"])).any()
             if not gia:
                 new = pd.DataFrame([[now_str(), scelta, r["msg"]]], columns=log_df.columns)
                 save_csv(pd.concat([log_df, new], ignore_index=True), LOG_FILE)
                 st.success("Registrato")
+
 
 # =========================================================
 # ROUTER
@@ -479,6 +441,3 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
-
-
-
