@@ -402,15 +402,15 @@ def dipendenti():
     st.link_button("HOME", HOME_URL)
 
     msg_df = load_csv(MSG_FILE, ["msg", "inizio", "fine", "pdv_ids", "file"])
-    oggi = datetime.now()
+    oggi = datetime.now().date()
     mostrati = []
 
     for _, r in msg_df.iterrows():
         ids = [x.strip() for x in (r["pdv_ids"] or "").splitlines() if x.strip()]
         if pdv_id in ids:
             try:
-                di = datetime.strptime(r["inizio"], "%d-%m-%Y")
-                df = datetime.strptime(r["fine"], "%d-%m-%Y")
+                di = datetime.strptime(r["inizio"], "%d-%m-%Y").date()
+                df = datetime.strptime(r["fine"], "%d-%m-%Y").date()
                 if di <= oggi <= df:
                     mostrati.append(r)
             except Exception:
@@ -471,4 +471,5 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
