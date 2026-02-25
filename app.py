@@ -454,6 +454,7 @@ def dipendenti():
 
         st.markdown("---")
         st.markdown(box_html, unsafe_allow_html=True)
+        st.markdown("---")
 
         # se PDF: download fuori (Streamlit)
         if r["file"] and file_path and os.path.exists(file_path) and r["file"].lower().endswith(".pdf"):
@@ -479,6 +480,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
