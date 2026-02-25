@@ -8,6 +8,7 @@ import re
 import html
 import base64
 import textwrap
+import streamlit.components.v1 as components
 
 st.set_page_config(layout="wide")
 
@@ -510,6 +511,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
