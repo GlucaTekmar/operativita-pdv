@@ -433,7 +433,36 @@ def dipendenti():
         file_path = None
 
         # costruisci box con testo messaggio + (se immagine) dentro box
-        box_html = f"<div class='msgbox'>{r['msg']}"
+        box_html = f"""
+<div style="
+    background:white;
+    padding:24px;
+    border-radius:14px;
+    font-family:Arial;
+    margin-bottom:25px;
+    width:100%;
+    box-sizing:border-box;
+">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        flex-wrap:wrap;
+    ">
+        <img src="https://raw.githubusercontent.com/GiucaTekmar/operativita-pdv/main/logo.png"
+             style="height:45px;">
+        <div style="font-size:15px;margin-top:5px;">
+            {datetime.now().strftime("%d/%m/%Y")}
+        </div>
+    </div>
+
+    <hr style="margin:15px 0;">
+
+    <div style="font-size:16px;line-height:1.5;">
+        {r['msg']}
+    </div>
+"""
 
         if r["file"]:
             file_path = os.path.join(UPLOAD_DIR, r["file"])
@@ -480,6 +509,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
