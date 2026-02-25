@@ -429,6 +429,7 @@ def dipendenti():
 
     # ===== MESSAGGI OPERATIVI =====
     for i, r in enumerate(mostrati):
+        st.markdown(f"### MESSAGGIO {i+1} DI {len(mostrati)}")
         file_path = None
 
         # costruisci box con testo messaggio + (se immagine) dentro box
@@ -478,6 +479,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
