@@ -7,6 +7,7 @@ from streamlit_quill import st_quill
 import re
 import html
 import base64
+import textwrap
 
 st.set_page_config(layout="wide")
 
@@ -509,6 +510,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
