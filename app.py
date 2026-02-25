@@ -484,7 +484,7 @@ def dipendenti():
         box_html += "</div>"
 
         st.markdown("---")
-        st.markdown(textwrap.dedent(box_html), unsafe_allow_html=True)
+        components.html(box_html, height=320,scrolling=False)
         st.markdown("---")
 
         # se PDF: download fuori (Streamlit)
@@ -511,6 +511,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
