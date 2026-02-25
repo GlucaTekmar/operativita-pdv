@@ -333,6 +333,9 @@ def admin():
                 save_csv(log.iloc[0:0], LOG_FILE)
                 st.success("Log pulito")
                 st.rerun()
+            if st.button("LOGOUT"):
+                st.session_state["admin_ok"] = False
+                st.rerun()
 
 
 # =========================================================
@@ -511,6 +514,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
