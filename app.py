@@ -467,11 +467,7 @@ def dipendenti():
         """
 
         # -------- CONTENUTO MESSAGGIO --------
-        body_html = f"""
-            <div style="font-size: 16px; line-height: 1.5;">
-                {r['msg']}
-            </div>
-        """
+        body_html = r["msg"]
 
         # -------- IMMAGINE DENTRO BOX --------
         file_html = ""
@@ -550,4 +546,5 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
