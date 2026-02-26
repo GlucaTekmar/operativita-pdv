@@ -373,6 +373,16 @@ def dipendenti():
 }
 </style>
 """, unsafe_allow_html=True)
+    
+    st.markdown("""
+<style>
+.msgbox a {
+    color: #0066cc !important;
+    text-decoration: underline !important;
+    font-weight: 700;
+}
+</style>
+""", unsafe_allow_html=True)
 
     if os.path.exists("logo.png"):
         c1, c2, c3 = st.columns([1, 2, 1])
@@ -546,6 +556,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
