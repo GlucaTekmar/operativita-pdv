@@ -272,7 +272,7 @@ def admin():
             idx_open = st.number_input("Apri messaggio (N°)", min_value=0, max_value=len(msg_df), value=0, step=1)
             if idx_open and 1 <= idx_open <= len(msg_df):
                 r = msg_df.iloc[idx_open - 1]
-                st.text_area("Contenuto messaggio (copiabile)", r["msg"], height=260)
+                msg_edit = st_quill(value=r["msg"], html=True)
 
         if not msg_df.empty:
             del_idx = st.multiselect(
@@ -391,7 +391,7 @@ def dipendenti():
 
     st.markdown(
         "<p style='text-align:center;'><b>"
-        "Digita le prime lettere della Città per trovare il tuo PDV"
+        "digita le prime lettere della Città"
         "</b></p>",
         unsafe_allow_html=True
     )
@@ -423,7 +423,7 @@ def dipendenti():
     if not mostrati:
         st.markdown("""
         <div class='msgbox' style='text-align:center;font-weight:800;font-size:18px;'>
-        QUESTA MATTINA PER QUESTO PDV NON SONO PREVISTE PROMO/ATTIVITA' PARTICOLARI. BUON LAVORO
+        QUESTA MATTINA NON SONO PREVISTE PROMO-ATTIVITA' PARTICOLARI. BUON LAVORO
         </div>
         """, unsafe_allow_html=True)
 
@@ -436,112 +436,112 @@ def dipendenti():
         return
 
     # ===== MESSAGGI OPERATIVI =====
-for i, r in enumerate(mostrati):
+    for i, r in enumerate(mostrati):
 
-    st.markdown(f"### MESSAGGIO {i + 1} DI {len(mostrati)}")
+        st.markdown(f"### MESSAGGIO {i + 1} DI {len(mostrati)}")
 
-    # -------- LOGO + DATA --------
-    header_html = f"""
-    <div style="
-        background: white;
-        padding: 20px;
-        border-radius: 14px;
-        font-family: Arial, sans-serif;
-        margin-bottom: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-    ">
+        # -------- LOGO + DATA --------
+        header_html = f"""
         <div style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
+            background: white;
+            padding: 20px;
+            border-radius: 14px;
+            font-family: Arial, sans-serif;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         ">
-            <img src="https://raw.githubusercontent.com/GiucaTekmar/operativita-pdv/main/logo.png"
-                 style="height: 45px;">
-            <div style="font-size: 15px;">
-                {datetime.now().strftime("%d/%m/%Y")}
-            </div>
-        </div>
-
-        <hr style="margin: 15px 0;">
-    """
-
-    # -------- CONTENUTO MESSAGGIO --------
-    body_html = f"""
-        <div style="font-size: 16px; line-height: 1.5;">
-            {r['msg']}
-        </div>
-    """
-
-    # -------- IMMAGINE DENTRO BOX --------
-    file_html = ""
-
-    if r["file"]:
-        path = os.path.join(UPLOAD_DIR, r["file"])
-
-        if os.path.exists(path) and not r["file"].lower().endswith(".pdf"):
-            with open(path, "rb") as f:
-                encoded = base64.b64encode(f.read()).decode()
-
-            file_html = f"""
-                <div style="margin-top: 18px; text-align: center;">
-                    <img src="data:image/png;base64,{encoded}"
-                         style="max-width: 100%; height: auto; border-radius: 10px;">
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+            ">
+                <img src="https://raw.githubusercontent.com/GiucaTekmar/operativita-pdv/main/logo.png"
+                     style="height: 45px;">
+                <div style="font-size: 15px;">
+                    {datetime.now().strftime("%d/%m/%Y")}
                 </div>
-            """
+            </div>
 
-    footer_html = "</div>"
+            <hr style="margin: 15px 0;">
+        """
 
-    full_html = header_html + body_html + file_html + footer_html
+        # -------- CONTENUTO MESSAGGIO --------
+        body_html = f"""
+            <div style="font-size: 16px; line-height: 1.5;">
+                {r['msg']}
+            </div>
+        """
 
-    st.markdown(full_html, unsafe_allow_html=True)
+        # -------- IMMAGINE DENTRO BOX --------
+        file_html = ""
 
-    # -------- DOWNLOAD PDF (FUORI DAL BOX) --------
-    if r["file"] and r["file"].lower().endswith(".pdf"):
-        path = os.path.join(UPLOAD_DIR, r["file"])
-        if os.path.exists(path):
-            with open(path, "rb") as f:
-                st.download_button(
-                    label="Scarica allegato PDF",
-                    data=f.read(),
-                    file_name=r["file"]
+        if r["file"]:
+            path = os.path.join(UPLOAD_DIR, r["file"])
+
+            if os.path.exists(path) and not r["file"].lower().endswith(".pdf"):
+                with open(path, "rb") as f:
+                    encoded = base64.b64encode(f.read()).decode()
+
+                file_html = f"""
+                    <div style="margin-top: 18px; text-align: center;">
+                        <img src="data:image/png;base64,{encoded}"
+                             style="max-width: 100%; height: auto; border-radius: 10px;">
+                    </div>
+                """
+
+        footer_html = "</div>"
+
+        full_html = header_html + body_html + file_html + footer_html
+
+        st.markdown(full_html, unsafe_allow_html=True)
+
+        # -------- DOWNLOAD PDF (FUORI DAL BOX) --------
+        if r["file"] and r["file"].lower().endswith(".pdf"):
+            path = os.path.join(UPLOAD_DIR, r["file"])
+            if os.path.exists(path):
+                with open(path, "rb") as f:
+                    st.download_button(
+                        label="Scarica allegato PDF",
+                        data=f.read(),
+                        file_name=r["file"]
+                    )
+
+        # -------- CHECKBOX --------
+        lettura = st.checkbox(
+            "Spunta di PRESA VISIONE",
+            key=f"l_{pdv_id}_{i}"
+        )
+
+        presenza = st.checkbox(
+            "Spunta CONFERMA DI PRESENZA",
+            key=f"p_{pdv_id}_{i}"
+        )
+
+        if lettura and presenza:
+            gia_registrato = (
+                (log_df["pdv"] == scelta) &
+                (log_df["msg"] == r["msg"])
+            ).any()
+
+            if not gia_registrato:
+                new_row = pd.DataFrame(
+                    [[now_str(), scelta, r["msg"]]],
+                    columns=log_df.columns
                 )
 
-    # -------- CHECKBOX --------
-    lettura = st.checkbox(
-        "Spunta di PRESA VISIONE",
-        key=f"l_{pdv_id}_{i}"
-    )
+                updated_df = pd.concat(
+                    [log_df, new_row],
+                    ignore_index=True
+                )
 
-    presenza = st.checkbox(
-        "Spunta CONFERMA DI PRESENZA",
-        key=f"p_{pdv_id}_{i}"
-    )
+                save_csv(updated_df, LOG_FILE)
+                st.success("Registrato")
 
-    if lettura and presenza:
-        gia_registrato = (
-            (log_df["pdv"] == scelta) &
-            (log_df["msg"] == r["msg"])
-        ).any()
+        st.markdown("---")
 
-        if not gia_registrato:
-            new_row = pd.DataFrame(
-                [[now_str(), scelta, r["msg"]]],
-                columns=log_df.columns
-            )
+    st.link_button("HOME", HOME_URL)
 
-            updated_df = pd.concat(
-                [log_df, new_row],
-                ignore_index=True
-            )
-
-            save_csv(updated_df, LOG_FILE)
-            st.success("Registrato")
-
-    st.markdown("---")
-
-        HOME_URL = "https://eu.jotform.com/app/253605296903360"
-        st.link_button("HOME", HOME_URL)
 
 # =========================================================
 # ROUTER
@@ -550,21 +550,3 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
