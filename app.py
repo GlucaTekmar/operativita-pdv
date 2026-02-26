@@ -433,77 +433,109 @@ def dipendenti():
         return
 
     # ===== MESSAGGI OPERATIVI =====
-    for i, r in enumerate(mostrati):
-        st.markdown(f"### MESSAGGIO {i+1} DI {len(mostrati)}")
-        file_path = None
+for i, r in enumerate(mostrati):
 
-        # costruisci box con testo messaggio + (se immagine) dentro box
-        box_html = f"""
-<div style="
-    background:white;
-    padding:24px;
-    border-radius:14px;
-    font-family:Arial;
-    margin-bottom:25px;
-    width:100%;
-    box-sizing:border-box;
-">
+    st.markdown(f"### MESSAGGIO {i + 1} DI {len(mostrati)}")
 
+    # -------- LOGO + DATA --------
+    header_html = f"""
     <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        flex-wrap:wrap;
+        background: white;
+        padding: 20px;
+        border-radius: 14px;
+        font-family: Arial, sans-serif;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     ">
-        <img src="https://raw.githubusercontent.com/GiucaTekmar/operativita-pdv/main/logo.png"
-             style="height:45px;">
-        <div style="font-size:15px;margin-top:5px;">
-            {datetime.now().strftime("%d/%m/%Y")}
+        <div style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        ">
+            <img src="https://raw.githubusercontent.com/GiucaTekmar/operativita-pdv/main/logo.png"
+                 style="height: 45px;">
+            <div style="font-size: 15px;">
+                {datetime.now().strftime("%d/%m/%Y")}
+            </div>
         </div>
-    </div>
 
-    <hr style="margin:15px 0;">
+        <hr style="margin: 15px 0;">
+    """
 
-    <div style="font-size:16px;line-height:1.5;">
-        {r['msg']}
-    </div>
-"""
+    # -------- CONTENUTO MESSAGGIO --------
+    body_html = f"""
+        <div style="font-size: 16px; line-height: 1.5;">
+            {r['msg']}
+        </div>
+    """
 
-        if r["file"]:
-            file_path = os.path.join(UPLOAD_DIR, r["file"])
-            if os.path.exists(file_path):
-                if r["file"].lower().endswith(".pdf"):
-                    box_html += "<br><br><b>Allegato PDF disponibile sotto</b>"
-                else:
-                    try:
-                        b64 = base64.b64encode(open(file_path, "rb").read()).decode()
-                        ext = os.path.splitext(r["file"])[1].lower().replace(".", "")
-                        if ext == "jpg":
-                            ext = "jpeg"
-                        box_html += f"<br><br><img src='data:image/{ext};base64,{b64}' style='max-width:100%;height:auto;'>"
-                    except Exception:
-                        pass
+    # -------- IMMAGINE DENTRO BOX --------
+    file_html = ""
 
-        box_html += "</div>"
+    if r["file"]:
+        path = os.path.join(UPLOAD_DIR, r["file"])
 
-        st.markdown("---")
-        components.html(box_html, height=320,scrolling=False)
-        st.markdown("---")
+        if os.path.exists(path) and not r["file"].lower().endswith(".pdf"):
+            with open(path, "rb") as f:
+                encoded = base64.b64encode(f.read()).decode()
 
-        # se PDF: download fuori (Streamlit)
-        if r["file"] and file_path and os.path.exists(file_path) and r["file"].lower().endswith(".pdf"):
-            with open(file_path, "rb") as f:
-                st.download_button("Scarica allegato", f.read(), r["file"], key=f"dl_{pdv_id}_{i}")
+            file_html = f"""
+                <div style="margin-top: 18px; text-align: center;">
+                    <img src="data:image/png;base64,{encoded}"
+                         style="max-width: 100%; height: auto; border-radius: 10px;">
+                </div>
+            """
 
-        lettura = st.checkbox("Spunta di PRESA VISIONE", key=f"l_{pdv_id}_{i}")
-        presenza = st.checkbox("Spunta CONFERMA DI PRESENZA", key=f"p_{pdv_id}_{i}")
+    footer_html = "</div>"
 
-        if lettura and presenza:
-            gia = ((log_df["pdv"] == scelta) & (log_df["msg"] == r["msg"])).any()
-            if not gia:
-                new = pd.DataFrame([[now_str(), scelta, r["msg"]]], columns=log_df.columns)
-                save_csv(pd.concat([log_df, new], ignore_index=True), LOG_FILE)
-                st.success("Registrato")
+    full_html = header_html + body_html + file_html + footer_html
+
+    st.markdown(full_html, unsafe_allow_html=True)
+
+    # -------- DOWNLOAD PDF (FUORI DAL BOX) --------
+    if r["file"] and r["file"].lower().endswith(".pdf"):
+        path = os.path.join(UPLOAD_DIR, r["file"])
+        if os.path.exists(path):
+            with open(path, "rb") as f:
+                st.download_button(
+                    label="Scarica allegato PDF",
+                    data=f.read(),
+                    file_name=r["file"]
+                )
+
+    # -------- CHECKBOX --------
+    lettura = st.checkbox(
+        "Spunta di PRESA VISIONE",
+        key=f"l_{pdv_id}_{i}"
+    )
+
+    presenza = st.checkbox(
+        "Spunta CONFERMA DI PRESENZA",
+        key=f"p_{pdv_id}_{i}"
+    )
+
+    if lettura and presenza:
+        gia_registrato = (
+            (log_df["pdv"] == scelta) &
+            (log_df["msg"] == r["msg"])
+        ).any()
+
+        if not gia_registrato:
+            new_row = pd.DataFrame(
+                [[now_str(), scelta, r["msg"]]],
+                columns=log_df.columns
+            )
+
+            updated_df = pd.concat(
+                [log_df, new_row],
+                ignore_index=True
+            )
+
+            save_csv(updated_df, LOG_FILE)
+            st.success("Registrato")
+
+    st.markdown("---")
 
         st.link_button("HOME", HOME_URL)
 
@@ -514,6 +546,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
