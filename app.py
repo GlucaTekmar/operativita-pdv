@@ -248,6 +248,9 @@ def admin():
 
             save_csv(pd.concat([df, new], ignore_index=True), MSG_FILE)
             st.success("Messaggio salvato")
+        if st.button("LOGOUT"):
+            st.session_state["admin_ok"] = False
+            st.rerun()
 
     # ================= REPORT =================
     with tab_report:
@@ -546,6 +549,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
