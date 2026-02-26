@@ -540,6 +540,7 @@ for i, r in enumerate(mostrati):
 
     st.markdown("---")
 
+        HOME_URL = "https://eu.jotform.com/app/253605296903360"
         st.link_button("HOME", HOME_URL)
 
 # =========================================================
@@ -549,6 +550,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
