@@ -448,6 +448,8 @@ def dipendenti():
             font-family: Arial, sans-serif;
             margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            overflow-wrap: break-word;
+            word-break: break-word;
         ">
             <div style="
                 display: flex;
@@ -544,6 +546,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
