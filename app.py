@@ -455,7 +455,7 @@ def dipendenti():
                 align-items: center;
                 flex-wrap: wrap;
             ">
-                <img src="https://raw.githubusercontent.com/GiucaTekmar/operativita-pdv/main/logo.png"
+                <img src="logo.png"
                      style="height: 45px;">
                 <div style="font-size: 15px;">
                     {datetime.now().strftime("%d/%m/%Y")}
@@ -544,6 +544,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
