@@ -432,7 +432,6 @@ def dipendenti():
             save_csv(pd.concat([log_df, new], ignore_index=True), LOG_FILE)
             st.success("Presenza registrata")
 
-        st.link_button("HOME", HOME_URL)
         return
 
     # ===== MESSAGGI OPERATIVI =====
@@ -538,7 +537,6 @@ def dipendenti():
 
     st.link_button("HOME", HOME_URL)
 
-
 # =========================================================
 # ROUTER
 # =========================================================
@@ -546,5 +544,6 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
