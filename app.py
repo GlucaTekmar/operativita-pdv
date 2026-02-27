@@ -467,7 +467,7 @@ def dipendenti():
                 align-items: center;
                 flex-wrap: wrap;
             ">
-                <img src="https://raw.githubusercontent.com/GiucaTekmar/operativita-pdv/main/logo.png"
+                <img src="https://raw.githubusercontent.com/GlucaTekmar/operativita-pdv/refs/heads/main/logo.png"
                      style="height: 45px;">
                 <div style="font-size: 15px;">
                     {datetime.now().strftime("%d/%m/%Y")}
@@ -478,10 +478,7 @@ def dipendenti():
         """
 
         # -------- CONTENUTO MESSAGGIO --------
-        msg = str(r["msg"]).replace("<",
-        "&lt;").replace(">", "&gt;")
-
-        body_html = f"<div class='msgbox'>{msg}</div>"
+        body_html = f'<div class="msgbox">{r["msg"]}</div>'
         
         # -------- IMMAGINE DENTRO BOX --------
         file_html = ""
@@ -562,6 +559,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
