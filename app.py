@@ -503,9 +503,14 @@ def dipendenti():
 
         footer_html = "</div>"
 
-        full_html = header_html + body_html + file_html + footer_html
+        full_html = header_html + body_html + 
+        file_html + footer_html
+        
+        import textwrap 
+        full_html = textwrap.dedent(full_html).strip()
 
-        st.markdown(full_html, unsafe_allow_html=True)
+        st.markdown(full_html, 
+        unsafe_allow_html=True)
 
         # -------- DOWNLOAD PDF (FUORI DAL BOX) --------
         if r["file"] and r["file"].lower().endswith(".pdf"):
@@ -560,6 +565,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
