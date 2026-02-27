@@ -478,9 +478,9 @@ def dipendenti():
         """
 
         # -------- CONTENUTO MESSAGGIO --------
-        body_html = f"""
+        body_html = """
         <div style="color:#000;">
-        {r["msg"]}
+        """ + r["msg"] + """
         </div>
         """
         
@@ -563,6 +563,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
