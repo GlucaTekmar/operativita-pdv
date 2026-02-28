@@ -471,7 +471,7 @@ def dipendenti():
             </div>
 
             <div style="margin-top:15px;">
-                {r["msg"]}
+                {html.unescape(r["msg"])}
             </div>
         </div>
         """,
@@ -537,6 +537,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
