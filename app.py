@@ -214,8 +214,13 @@ def admin():
         st.header("CREA NUOVO MESSAGGIO")
         st.write("FORMATTATORE TESTO")
 
-        msg = st_quill(html=True)
-
+        msg = st_quill(html=True,toolbar=[
+            ["bold", "italic", "underline"],
+            [{"color": []}],
+            [{"list": "bullet"}],
+            ["link"]
+          ]
+        )               
         uploaded = st.file_uploader(
             "ALLEGATO (immagine o PDF)",
             type=["png", "jpg", "jpeg", "pdf"]
@@ -563,6 +568,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
