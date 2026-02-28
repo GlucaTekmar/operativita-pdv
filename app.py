@@ -474,7 +474,6 @@ def dipendenti():
                 </div>
             </div>
 
-            <hr style="margin: 15px 0;">
         """
 
         # -------- CONTENUTO MESSAGGIO --------
@@ -562,6 +561,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
