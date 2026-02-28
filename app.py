@@ -483,10 +483,13 @@ def dipendenti():
 
         # -------- CONTENUTO MESSAGGIO --------
         msg = r["msg"] or ""
+
+        # Rimuovere SOLO gli <hr> che rompono il layout
+        msg = re.sub(r"<hr[^>]*>", "", msg,flags=re.IGNORECASE)
         
-        # Rimuovere SOLO <hr> che rompe il layout
-        msg = re.sub(r"</?hr[^>]*>", "", msg,flags=re.IGNORECASE)
-        
+        # Rimuovere script potenzialmente pericolosi
+        msg = re.sub(r"<script.*?>.*?</script>", "", msg, flags=re.IGNORECASE |re.DOTALL)
+     
         body_html = f'<div class="msgbox">{msg}</div>'
         
         # -------- IMMAGINE DENTRO BOX --------
@@ -568,6 +571,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
