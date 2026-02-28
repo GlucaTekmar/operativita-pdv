@@ -368,6 +368,16 @@ def dipendenti():
     overflow-wrap:anywhere;
 }
 
+    .msgbox p,
+    .msgbox ul,
+    .msgbox ol,
+    .msgbox li,
+    .msgbox h1,
+    .msgbox h2,
+    .msgbox h3, {
+       margin: 0 !important;   
+}
+
 </style>
 """, unsafe_allow_html=True)
     
@@ -563,6 +573,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
