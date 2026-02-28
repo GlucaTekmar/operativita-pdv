@@ -364,7 +364,8 @@ def dipendenti():
     color:#000000;
     padding:24px;
     border-radius:12px;
-    width:100%;
+    box-sizing:border-box;
+    overflow-wrap:anywhere;
 }
 
 </style>
@@ -562,6 +563,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
