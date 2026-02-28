@@ -477,7 +477,9 @@ def dipendenti():
         """
 
         # -------- CONTENUTO MESSAGGIO --------
-        msg = html.unescape(r["msg"])
+        msg = r["msg"] or ""
+        
+        # Rimuovere SOLO <hr> che rompe il layout
         msg = re.sub(r"</?hr[^>]*>", "", msg,flags=re.IGNORECASE)
         
         body_html = f'<div class="msgbox">{msg}</div>'
@@ -561,6 +563,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
