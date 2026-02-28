@@ -500,7 +500,7 @@ def dipendenti():
                     </div>
                 """
 
-        footer_html = "</div>"
+        footer_html = "</div></div>"
 
         full_html = header_html + body_html + file_html + footer_html
         
@@ -562,6 +562,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
