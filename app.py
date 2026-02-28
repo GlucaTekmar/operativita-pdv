@@ -367,15 +367,6 @@ def dipendenti():
     width:100%;
 }
 
-   /* Evita testo bianco su sfondo bianco MA mantiene gli altri colori */
-   .msgbox [style*="color: rgb(255, 255, 255)"],
-   .msgbox [style*="color:rgb(255,255,255)"],
-   .msgbox [style*="color:#fff"],
-   .msgbox [style*="color:#ffffff"],
-   .msgbox span[style*="color: white"],
-   .msgbox [style*="color:white"]{
-     color:#000 !important;
-}
 </style>
 """, unsafe_allow_html=True)
     
@@ -571,6 +562,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
