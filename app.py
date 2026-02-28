@@ -455,9 +455,7 @@ def dipendenti():
     for i, r in enumerate(mostrati):
 
         st.markdown(f"### MESSAGGIO {i + 1} DI {len(mostrati)}")
-
-        with st.container():
-
+       
     st.markdown(
         f"""
         <div style="
@@ -539,6 +537,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
