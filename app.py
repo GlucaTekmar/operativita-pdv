@@ -456,69 +456,35 @@ def dipendenti():
 
         st.markdown(f"### MESSAGGIO {i + 1} DI {len(mostrati)}")
 
-        # -------- LOGO + DATA --------
-        header_html = f"""
+        with st.container():
+
+    st.markdown(
+        f"""
         <div style="
-            background: white;
-            padding: 20px;
-            border-radius: 14px;
-            font-family: Arial, sans-serif;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            overflow-wrap: break-word;
-            word-break: break-word;
+            background:white;
+            padding:20px;
+            border-radius:14px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.15);
+            font-family:Arial, sans-serif;
         ">
-            <div style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                flex-wrap: wrap;
-            ">
-                <img src="https://raw.githubusercontent.com/GlucaTekmar/operativita-pdv/refs/heads/main/logo.png"
-                     style="height: 45px;">
-                <div style="font-size: 15px;">
-                    {datetime.now().strftime("%d/%m/%Y")}
-                </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <img src="https://raw.githubusercontent.com/GlucaTekmar/operativita-pdv/refs/heads/main/logo.png" style="height:45px;">
+                <div style="font-size:15px;">{datetime.now().strftime("%d/%m/%Y")}</div>
             </div>
 
-        """
+            <div style="margin-top:15px;">
+                {r["msg"]}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-        # -------- CONTENUTO MESSAGGIO --------
-        msg = r["msg"] or ""
-
-        # Rimuovere SOLO gli <hr> che rompono il layout
-        msg = re.sub(r"<hr[^>]*>", "", msg,flags=re.IGNORECASE)
-        
-        # Rimuovere script potenzialmente pericolosi
-        msg = re.sub(r"<script.*?>.*?</script>", "", msg, flags=re.IGNORECASE |re.DOTALL)
-     
-        body_html = f'<div class="msgbox">{msg}</div>'
-        
-        # -------- IMMAGINE DENTRO BOX --------
-        file_html = ""
-
-        if r["file"]:
-            path = os.path.join(UPLOAD_DIR, r["file"])
-
-            if os.path.exists(path) and not r["file"].lower().endswith(".pdf"):
-                with open(path, "rb") as f:
-                    encoded = base64.b64encode(f.read()).decode()
-
-                file_html = f"""
-                    <div style="margin-top: 18px; text-align: center;">
-                        <img src="data:image/png;base64,{encoded}"
-                             style="max-width: 100%; height: auto; border-radius: 10px;">
-                    </div>
-                """
-
-        footer_html = "</div></div>"
-
-        full_html = header_html + body_html + file_html + footer_html
-        
-        import textwrap 
-        full_html = textwrap.dedent(full_html).strip()
-
-        st.markdown(full_html, unsafe_allow_html=True)
+    # Immagine allegata
+    if r["file"]:
+        path = os.path.join(UPLOAD_DIR, r["file"])
+        if os.path.exists(path) and not r["file"].lower().endswith(".pdf"):
+            st.image(path, use_container_width=True)
 
         # -------- DOWNLOAD PDF (FUORI DAL BOX) --------
         if r["file"] and r["file"].lower().endswith(".pdf"):
@@ -573,6 +539,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
