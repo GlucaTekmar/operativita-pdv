@@ -478,7 +478,8 @@ def dipendenti():
         """
 
         # -------- CONTENUTO MESSAGGIO --------
-        body_html = f'<div class="msgbox">{r["msg"]}</div>'
+        msg = re.sub(r"<hr[^>]*>", "", r["msg"],flags=re.IGNORECASE)
+        body_html = f'<div class="msgbox">{msg}</div>'
         
         # -------- IMMAGINE DENTRO BOX --------
         file_html = ""
@@ -559,6 +560,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
