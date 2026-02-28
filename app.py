@@ -482,7 +482,7 @@ def dipendenti():
     if r["file"]:
         path = os.path.join(UPLOAD_DIR, r["file"])
         if os.path.exists(path) and not r["file"].lower().endswith(".pdf"):
-            st.image(path, use_container_width=True)
+            st.image(path, width=600)
 
         # -------- DOWNLOAD PDF (FUORI DAL BOX) --------
         if r["file"] and r["file"].lower().endswith(".pdf"):
@@ -537,6 +537,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
