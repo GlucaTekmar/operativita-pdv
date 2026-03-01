@@ -401,7 +401,22 @@ def admin():
             idx_open = st.number_input("Apri messaggio (N°)", min_value=0, max_value=len(msg_df), value=0, step=1)
             if idx_open and 1 <= idx_open <= len(msg_df):
                 r = msg_df.iloc[idx_open - 1]
-                msg_edit = st_quill(value=r["msg"], html=True)
+
+        # 👇 BLOCCO OPZIONALE - Consigliato
+                msg_edit = st_quill(
+                value=r["msg"],
+                html=True,
+                toolbar=[
+                [{"header": [1, 2, 3, False]}],
+                ["bold", "italic", "underline", "strike"],
+                [{"color": []}, {"background": []}],
+                [{"align": []}],
+                [{"list": "ordered"}, {"list": "bullet"}],
+                [{"indent": "-1"}, {"indent": "+1"}],
+                ["blockquote", "code-block"],
+                ["link", "clean"]
+        ]
+    )
 
         if not msg_df.empty:
             del_idx = st.multiselect(
@@ -648,6 +663,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
