@@ -361,7 +361,7 @@ def admin():
         st.markdown("---")
 
         st.header("CREA NUOVO MESSAGGIO")
-        st.write("FORMATTATORE TESTO")
+        st.caption("Scrivi il messaggio e aggiungi eventuali link. Usa lo stile solo se serve.")
         
         msg = st_quill(
             html=True,
@@ -695,6 +695,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
