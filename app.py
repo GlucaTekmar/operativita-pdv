@@ -10,6 +10,7 @@ import base64
 import textwrap
 import streamlit.components.v1 as components
 from PIL import Image, ImageDraw, ImageFont
+from urllib.parse import urlparse
 
 st.set_page_config(layout="wide")
 
@@ -159,6 +160,24 @@ def stato_da_fullmsg(full_msg: str, msg_df: pd.DataFrame) -> str:
         return ""
     r = m.iloc[0]
     return stato_msg(r["inizio"], r["fine"])
+
+def extract_urls_from_html(html_msg: str) -> list[str]:
+    s = html_msg or ""
+    # prende URL sia da href che da testo incollato
+    urls = re.findall(r'href=[\'"]([^\'"]+)[\'"]', s, flags=re.IGNORECASE)
+    urls += re.findall(r'(https?://[^\s"<>\]]+)', s, flags=re.IGNORECASE)
+
+    # pulizia e dedup mantenendo ordine
+    out = []
+    seen = set()
+    for u in urls:
+        u = u.strip().rstrip(").,;")
+        if not u:
+            continue
+        if u not in seen:
+            seen.add(u)
+            out.append(u)
+    return out
 
 # =========================================================
 # 🖼️ RENDER MESSAGGIO → IMMAGINE
@@ -350,7 +369,7 @@ def admin():
             view["STATO"] = view.apply(lambda r: stato_msg(r["inizio"], r["fine"]), axis=1)
             view = view[["N°", "MESSAGGIO", "inizio", "fine", "STATO", "pdv_ids"]]
 
-        st.dataframe(view, use_container_width=True)
+        st.dataframe(view)
 
         if not msg_df.empty:
             idx_open = st.number_input("Apri messaggio (N°)", min_value=0, max_value=len(msg_df), value=0, step=1)
@@ -396,7 +415,7 @@ def admin():
             log_view["stato"] = log_view["msg"].apply(lambda m: stato_da_fullmsg(m, msg_df))
             log_view = log_view[["N°", "data", "pdv", "messaggio", "stato"]]
 
-        st.dataframe(log_view, use_container_width=True)
+        st.dataframe(log_view)
 
         if not log.empty:
             del_log_idx = st.multiselect(
@@ -538,7 +557,7 @@ def dipendenti():
         # 🖼️ RENDER IMMAGINE
         img = render_msg_image(r["msg"])
 
-        st.image(img, use_container_width=True)
+        st.image(img)
 
         # ===== ALLEGATO =====
         if r["file"]:
@@ -548,7 +567,7 @@ def dipendenti():
 
                 # Immagine extra
                 if not r["file"].lower().endswith(".pdf"):
-                    st.image(path, use_container_width=True)
+                    st.image(path)
 
                 # PDF scaricabile
                 if r["file"].lower().endswith(".pdf"):
@@ -603,6 +622,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
