@@ -624,6 +624,7 @@ def dipendenti():
         # ===== MESSAGGI OPERATIVI =====
     for i, r in enumerate(mostrati):
 
+        st.markdown('<div class="intra-card">', unsafe_allow_html=True)
         st.markdown(f"### MESSAGGIO {i + 1} DI {len(mostrati)}")
 
         # 🖼️ RENDER IMMAGINE
@@ -683,8 +684,8 @@ def dipendenti():
                 save_csv(updated_df, LOG_FILE)
                 st.success("Registrato")
 
+        st.markdown('</div>', unsafe_allow_html=True)
         st.markdown("---")
-
     st.link_button("HOME", HOME_URL)
 
 # =========================================================
@@ -694,6 +695,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
