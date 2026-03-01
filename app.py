@@ -179,6 +179,26 @@ def extract_urls_from_html(html_msg: str) -> list[str]:
             out.append(u)
     return out
 
+def classify_url(u: str):
+    u_low = (u or "").lower()
+
+    if "youtube.com" in u_low or "youtu.be" in u_low:
+        return ("🎬 Guarda video", "video")
+
+    if u_low.endswith(".pdf"):
+        return ("📄 Apri PDF", "pdf")
+
+    if "drive.google.com" in u_low or "docs.google.com" in u_low:
+        return ("☁️ Apri Drive", "drive")
+
+    if "teams.microsoft.com" in u_low:
+        return ("🧩 Apri Teams", "teams")
+
+    if "wa.me" in u_low or "whatsapp.com" in u_low:
+        return ("💬 Apri WhatsApp", "whatsapp")
+
+    return ("🌐 Apri sito", "web")
+
 # =========================================================
 # 🖼️ RENDER MESSAGGIO → IMMAGINE
 # =========================================================
@@ -629,6 +649,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
