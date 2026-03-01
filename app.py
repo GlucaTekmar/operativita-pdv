@@ -559,6 +559,13 @@ def dipendenti():
 
         st.image(img)
 
+# 🔗 LINK / VIDEO ONLINE
+urls = extract_urls_from_html(r["msg"])
+if urls:
+    st.markdown("**📎 Link utili:**")
+    for u in urls:
+        st.markdown(f"- [{u}]({u})")
+
         # ===== ALLEGATO =====
         if r["file"]:
             path = os.path.join(UPLOAD_DIR, r["file"])
@@ -622,6 +629,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
