@@ -13,6 +13,37 @@ from PIL import Image, ImageDraw, ImageFont
 from urllib.parse import urlparse
 
 st.set_page_config(layout="wide")
+st.markdown("""
+<style>
+/* layout */
+.block-container { max-width: 1100px; padding-top: 1rem; }
+
+/* font e titoli */
+h1, h2, h3 { font-weight: 800; }
+
+/* bottoni grandi */
+.stButton>button, .stDownloadButton>button, .stLinkButton>button {
+  width: 100%;
+  padding: 16px 18px;
+  font-size: 18px;
+  font-weight: 800;
+  border-radius: 14px;
+}
+
+/* input più grandi */
+.stTextInput input, .stTextArea textarea, .stSelectbox div, .stDateInput input {
+  font-size: 16px;
+}
+
+/* card effetto intranet */
+.intra-card {
+  border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 16px;
+  padding: 14px 14px;
+  background: rgba(255,255,255,0.06);
+}
+</style>
+""", unsafe_allow_html=True)
 
 
 # =========================================================
@@ -663,6 +694,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
