@@ -9,6 +9,7 @@ import html
 import base64
 import textwrap
 import streamlit.components.v1 as components
+from PIL import Image, ImageDraw, ImageFont
 
 st.set_page_config(layout="wide")
 
@@ -158,6 +159,84 @@ def stato_da_fullmsg(full_msg: str, msg_df: pd.DataFrame) -> str:
         return ""
     r = m.iloc[0]
     return stato_msg(r["inizio"], r["fine"])
+
+# =========================================================
+# 🖼️ RENDER MESSAGGIO → IMMAGINE
+# =========================================================
+def render_msg_image(html_msg: str, logo_path="logo.png"):
+
+    text = strip_html_to_text(html_msg)
+
+    # --- PARAMETRI GRAFICI ---
+    width = 900
+    padding = 40
+    bg_color = "white"
+    border_color = "#C00000"
+    text_color = "black"
+
+    # --- FONT ---
+    try:
+        font_title = ImageFont.truetype("DejaVuSans-Bold.ttf", 34)
+        font_text = ImageFont.truetype("DejaVuSans.ttf", 26)
+        font_date = ImageFont.truetype("DejaVuSans.ttf", 20)
+    except:
+        font_title = font_text = font_date = ImageFont.load_default()
+
+    # --- TITOLO AUTOMATICO ---
+    title = first_line_title(html_msg)
+
+    # --- WRAP TESTO ---
+    wrapper = textwrap.TextWrapper(width=60)
+    lines = wrapper.wrap(text)
+
+    # --- CALCOLO ALTEZZA ---
+    line_h = font_text.getbbox("A")[3] + 8
+    text_height = len(lines) * line_h
+
+    header_h = 120
+    height = header_h + text_height + padding * 2
+
+    img = Image.new("RGB", (width, height), bg_color)
+    draw = ImageDraw.Draw(img)
+
+    # --- BORDO ---
+    draw.rounded_rectangle(
+        (5, 5, width - 5, height - 5),
+        radius=20,
+        outline=border_color,
+        width=4
+    )
+
+    # --- LOGO ---
+    if os.path.exists(logo_path):
+        logo = Image.open(logo_path).convert("RGBA")
+        logo.thumbnail((220, 80))
+        img.paste(logo, (padding, 20), logo)
+
+    # --- DATA ---
+    data_txt = datetime.now().strftime("%d/%m/%Y")
+    draw.text(
+        (width - 160, 35),
+        data_txt,
+        font=font_date,
+        fill=text_color
+    )
+
+    # --- TITOLO ---
+    draw.text(
+        (padding, 110),
+        title,
+        font=font_title,
+        fill=border_color
+    )
+
+    # --- TESTO ---
+    y = 160
+    for line in lines:
+        draw.text((padding, y), line, font=font_text, fill=text_color)
+        y += line_h
+
+    return img
 
 
 # =========================================================
@@ -451,51 +530,36 @@ def dipendenti():
 
         return
 
-    # ===== MESSAGGI OPERATIVI =====
+        # ===== MESSAGGI OPERATIVI =====
     for i, r in enumerate(mostrati):
 
         st.markdown(f"### MESSAGGIO {i + 1} DI {len(mostrati)}")
-       
-    st.markdown(
-        f"""
-        <div style="
-            background:white;
-            padding:20px;
-            border-radius:14px;
-            box-shadow:0 2px 8px rgba(0,0,0,0.15);
-            font-family:Arial, sans-serif;
-        ">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <img src="https://raw.githubusercontent.com/GlucaTekmar/operativita-pdv/refs/heads/main/logo.png" style="height:45px;">
-                <div style="font-size:15px;">{datetime.now().strftime("%d/%m/%Y")}</div>
-            </div>
 
-            <div style="margin-top:15px;">
-                {r["msg"]}
-          
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        # 🖼️ RENDER IMMAGINE
+        img = render_msg_image(r["msg"])
 
-    # Immagine allegata
-    if r["file"]:
-        path = os.path.join(UPLOAD_DIR, r["file"])
-        if os.path.exists(path) and not r["file"].lower().endswith(".pdf"):
-            st.image(path, width=600)
+        st.image(img, use_container_width=True)
 
-        # -------- DOWNLOAD PDF (FUORI DAL BOX) --------
-        if r["file"] and r["file"].lower().endswith(".pdf"):
+        # ===== ALLEGATO =====
+        if r["file"]:
             path = os.path.join(UPLOAD_DIR, r["file"])
-            if os.path.exists(path):
-                with open(path, "rb") as f:
-                    st.download_button(
-                        label="Scarica allegato PDF",
-                        data=f.read(),
-                        file_name=r["file"]
-                    )
 
-        # -------- CHECKBOX --------
+            if os.path.exists(path):
+
+                # Immagine extra
+                if not r["file"].lower().endswith(".pdf"):
+                    st.image(path, use_container_width=True)
+
+                # PDF scaricabile
+                if r["file"].lower().endswith(".pdf"):
+                    with open(path, "rb") as f:
+                        st.download_button(
+                            label="Scarica allegato PDF",
+                            data=f.read(),
+                            file_name=r["file"]
+                        )
+
+        # ===== CHECKBOX =====
         lettura = st.checkbox(
             "Spunta di PRESA VISIONE",
             key=f"l_{pdv_id}_{i}"
@@ -507,12 +571,14 @@ def dipendenti():
         )
 
         if lettura and presenza:
+
             gia_registrato = (
                 (log_df["pdv"] == scelta) &
                 (log_df["msg"] == r["msg"])
             ).any()
 
             if not gia_registrato:
+
                 new_row = pd.DataFrame(
                     [[now_str(), scelta, r["msg"]]],
                     columns=log_df.columns
@@ -537,6 +603,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
