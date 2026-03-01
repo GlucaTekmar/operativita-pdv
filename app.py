@@ -332,19 +332,19 @@ def admin():
         st.header("CREA NUOVO MESSAGGIO")
         st.write("FORMATTATORE TESTO")
         
-            msg = st_quill(
-    html=True,
-    toolbar=[
-        [{"header": [1, 2, 3, False]}],
-        ["bold", "italic", "underline", "strike"],
-        [{"color": []}, {"background": []}],
-        [{"align": []}],
-        [{"list": "ordered"}, {"list": "bullet"}],
-        [{"indent": "-1"}, {"indent": "+1"}],
-        ["blockquote", "code-block"],
-        ["link", "clean"]
-    ]
-)           
+        msg = st_quill(
+            html=True,
+            toolbar=[
+            [{"header": [1, 2, 3, False]}],
+            ["bold", "italic", "underline", "strike"],
+            [{"color": []}, {"background": []}],
+            [{"align": []}],
+            [{"list": "ordered"}, {"list": "bullet"}],
+            [{"indent": "-1"}, {"indent": "+1"}],
+            ["blockquote", "code-block"],
+            ["link", "clean"]
+        ]
+    )           
         uploaded = st.file_uploader(
             "ALLEGATO (immagine o PDF)",
             type=["png", "jpg", "jpeg", "pdf"]
@@ -663,6 +663,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
