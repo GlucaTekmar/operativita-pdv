@@ -682,8 +682,8 @@ def dipendenti():
         else:
           st.success("Presa visione già registrata per oggi")
 
-              st.markdown('</div>', unsafe_allow_html=True)
-              st.markdown("---")
+                st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown("---")
 
         c1, c2 = st.columns(2)
 
@@ -704,6 +704,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
