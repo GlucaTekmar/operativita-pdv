@@ -652,32 +652,32 @@ def dipendenti():
                         )
 
     # ===== CHECKBOX =====
-      oggi = datetime.now().strftime("%Y-%m-%d")
+        oggi = datetime.now().strftime("%Y-%m-%d")
 
-  gia_fatto_oggi = (
-      (log_df["pdv"] == scelta) &
-        (log_df["data"] == oggi)
-).any()
+    gia_fatto_oggi = (
+        (log_df["pdv"] == scelta) &
+          (log_df["data"] == oggi)
+  ).any()
 
-  ok_uscita = gia_fatto_oggi
+    ok_uscita = gia_fatto_oggi
 
-  if not gia_fatto_oggi:
+    if not gia_fatto_oggi:
 
-      lettura = st.checkbox("Spunta di PRESA VISIONE")
-      presenza = st.checkbox("Spunta CONFERMA DI PRESENZA")
+        lettura = st.checkbox("Spunta di PRESA VISIONE")
+        presenza = st.checkbox("Spunta CONFERMA DI PRESENZA")
 
-      if lettura and presenza:
+        if lettura and presenza:
 
-          new_row = pd.DataFrame(
-              [[oggi, scelta]],
-              columns=log_df.columns
-          )
+            new_row = pd.DataFrame(
+                [[oggi, scelta]],
+                columns=log_df.columns
+            )
 
-          updated_df = pd.concat([log_df, new_row], ignore_index=True)
-          save_csv(updated_df, LOG_FILE)
+            updated_df = pd.concat([log_df, new_row], ignore_index=True)
+            save_csv(updated_df, LOG_FILE)
 
-          ok_uscita = True
-          st.success("Conferma registrata")
+            ok_uscita = True
+            st.success("Conferma registrata")
 
   else:
       st.success("Presa visione già registrata per oggi")
@@ -704,6 +704,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
