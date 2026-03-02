@@ -675,7 +675,7 @@ def dipendenti():
             st.session_state.confermato_oggi = True
     
             new_row = pd.DataFrame(
-                [[scelta, oggi]],
+                [[oggi, scelta, "PRESA VISIONE"]],
                 columns=log_df.columns
             )
     
@@ -708,6 +708,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
