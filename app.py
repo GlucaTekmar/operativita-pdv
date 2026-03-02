@@ -669,7 +669,7 @@ def dipendenti():
         if lettura and presenza:
 
             new_row = pd.DataFrame(
-                [[oggi, scelta]],
+                [[oggi, scelta, True]],
                 columns=log_df.columns
             )
 
@@ -701,6 +701,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
