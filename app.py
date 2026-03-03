@@ -16,6 +16,14 @@ from urllib.parse import urlparse
 st.set_page_config(layout="wide")
 st.markdown("""
 <style>
+.block-container {
+    max-width: 900px;
+    margin: auto;
+}    
+</style>
+""", unsafe_allow_html=True)
+st.markdown("""
+<style>
 /* layout */
 .block-container { max-width: 1100px; padding-top: 1rem; }
 
@@ -713,6 +721,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
