@@ -330,7 +330,7 @@ def admin():
     # ================= OPERATIVO =================
     with tab_operativo:
 
-        st.header("IMPORT LISTA PDV")
+        st.header("IMPORTA LISTA PDV")
 
         pdv_existing = load_csv(PDV_FILE, ["ID", "PDV"])
         prefill = "\n".join([f"{r['ID']};{r['PDV']}" for _, r in pdv_existing.iterrows()])
@@ -623,9 +623,7 @@ def dipendenti():
         st.markdown(f"### MESSAGGIO {i + 1} DI {len(mostrati)}")
 
         # 🖼️ RENDER IMMAGINE
-        img = render_msg_image(r["msg"])
-
-        st.image(img)
+        st.markdown(r["msg"], unsafe_allow_html=True)
 
         # ===== ALLEGATO =====
         if r["file"]:
@@ -690,6 +688,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
