@@ -622,12 +622,14 @@ def dipendenti():
         # 🖼️ RENDER IMMAGINE
         st.markdown(
             f"""
-            <div lang="it" style="
+            <div lang="it" translate="no" style="
                 background-color: white;
                 padding: 25px;
                 border-radius: 12px;
                 margin-bottom: 20px;
                 color: black;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border-top: 6px solid #d50000;
             ">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <img src="https://raw.githubusercontent.com/GlucaTekmar/operativita-pdv/main/logo.png" width="120" style="object-fit:contain;">
@@ -641,7 +643,7 @@ def dipendenti():
                     MESSAGGIO OPERATIVO
                 </div>
                 
-                <div>
+                <div style="font-size:16px; line-height:1.5;">
                     {r["msg"]}
                 </div>
             </div>
@@ -712,6 +714,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
