@@ -644,7 +644,7 @@ def dipendenti():
                     MESSAGGIO OPERATIVO
                 </div>
                 
-                <div style="font-size:16px; line-height:1.5;">
+                <div style="font-size:16px; line-height:1.6; margin-top:5px;">
                     {r["msg"]}
                 </div>
             </div>
@@ -715,6 +715,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
