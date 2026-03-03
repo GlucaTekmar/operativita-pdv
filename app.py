@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
@@ -574,7 +575,7 @@ def dipendenti():
         st.warning("Archivio PDV vuoto")
         return
 
-    scelta = st.selectbox("", pdv_df["PDV"], key="scelta", index=None, placeholder="Digita la città...")
+    scelta = st.selectbox("", pdv_df["PDV"], index=None, placeholder="Digita la città...")
 
     st.markdown(
         "<p style='text-align:center;'><b>"
@@ -651,52 +652,42 @@ def dipendenti():
                             file_name=r["file"]
                         )
 
-        oggi = datetime.now().strftime("%Y-%m-%d")
-        log_df = pd.read_csv(LOG_FILE)
-        
-        scelta = st.session_state.get("scelta")
-        gia_fatto_oggi = (
-            (log_df["pdv"] == scelta) &
-            (log_df["data"] == oggi)
-        ).any()
-        
-        ok_uscita = gia_fatto_oggi
+    # ===== CHECKBOX =====
+    lettura = st.checkbox(
+        "Spunta di PRESA VISIONE",
+        key=f"l_{pdv_id}_{i}"
+    )
 
-        # ===== CHECKBOX =====
-        if not st.session_state.confermato_oggi:
-    
-        lettura = st.checkbox("Spunta di PRESA VISIONE")
-        presenza = st.checkbox("Spunta CONFERMA DI PRESENZA")
-    
-        if lettura and presenza:
-            st.session_state.confermato_oggi = True
-    
+    presenza = st.checkbox(
+        "Spunta CONFERMA DI PRESENZA",
+        key=f"p_{pdv_id}_{i}"
+    )
+
+    if lettura and presenza:
+
+        gia_registrato = (
+            (log_df["pdv"] == scelta) &
+            (log_df["msg"] == r["msg"])
+        ).any()
+
+        if not gia_registrato:
+
             new_row = pd.DataFrame(
-                [[oggi, scelta, "PRESA VISIONE"]],
+                [[now_str(), scelta, r["msg"]]],
                 columns=log_df.columns
             )
-    
-            updated_df = pd.concat([log_df, new_row], ignore_index=True)
+
+            updated_df = pd.concat(
+                [log_df, new_row],
+                ignore_index=True
+            )
+
             save_csv(updated_df, LOG_FILE)
-    
-            ok_uscita = True
-            st.success("Conferma registrata")
-    
-    else:
-        st.success("Presa visione già registrata per oggi")
-    
-    # ===== BOTTONI =====
-    c1, c2 = st.columns(2)
-    
-    with c1:
-        if st.button("TORNA ALLA LISTA PDV"):
-            if not ok_uscita:
-                st.error("Per uscire devi leggere e confermare i messaggi operativi")
-            else:
-                st.rerun()
-    
-    with c2:
-        st.link_button("HOME", HOME_URL)        
+            st.success("Registrato")
+
+        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("---")
+    st.link_button("HOME", HOME_URL)
 
 # =========================================================
 # ROUTER
@@ -705,22 +696,6 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
