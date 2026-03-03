@@ -517,7 +517,7 @@ def admin():
 def dipendenti():
     st.markdown("""
     <style>
-    .stApp {background:#c40000;}
+    .stApp {background:#f4f4f4;}
     label, h1, h2, h3 {color:white;}
     </style>
     """, unsafe_allow_html=True)
@@ -628,7 +628,7 @@ def dipendenti():
                 border-radius: 12px;
                 margin-bottom: 20px;
                 color: black;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                box-shadow: 0 6px 18px rgba(0,0,0,0.18);
                 border-top: 6px solid #d50000;
                 border: 2px solid #e5e5e5;
             ">
@@ -648,7 +648,7 @@ def dipendenti():
             """,
             unsafe_allow_html=True
         )
-            st.markdown(r["msg"], unsafe_allow:html=True)
+        st.markdown(r["msg"], unsafe_allow:html=True)
 
         # ===== ALLEGATO =====
         if r["file"]:
@@ -713,6 +713,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
