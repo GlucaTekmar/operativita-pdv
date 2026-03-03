@@ -148,13 +148,7 @@ def excel_bytes(df):
 
 
 def normalize_lines(text: str) -> str:
-    lines = []
-    for x in (text or "").splitlines():
-        s = x.strip()
-        if s:
-            lines.append(s)
-    return "\n".join(lines)
-
+    return text or ""
 
 def strip_html_to_text(s: str) -> str:
     s = s or ""
@@ -696,6 +690,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
