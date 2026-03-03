@@ -619,11 +619,29 @@ def dipendenti():
         # ===== MESSAGGI OPERATIVI =====
     for i, r in enumerate(mostrati):
 
-        st.markdown('<div class="intra-card">', unsafe_allow_html=True)
-        st.markdown(f"### MESSAGGIO {i + 1} DI {len(mostrati)}")
-
         # 🖼️ RENDER IMMAGINE
-        st.markdown(r["msg"], unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div style="
+                background-color: white;
+                padding: 25px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+            ">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <img src="logo.png" width="120">
+                    <div style="font-size:14px; color:#555;">
+                        {now_str().split(" ")[0]}
+                    </div>
+                </div>
+                <hr style="margin:15px 0;">
+                <div>
+                    {r["msg"]}
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
         # ===== ALLEGATO =====
         if r["file"]:
@@ -688,6 +706,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
