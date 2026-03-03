@@ -622,7 +622,7 @@ def dipendenti():
         # 🖼️ RENDER IMMAGINE
         st.markdown(
             f"""
-            <div style="
+            <div lang="it" style="
                 background-color: white;
                 padding: 25px;
                 border-radius: 12px;
@@ -707,6 +707,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
