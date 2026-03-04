@@ -641,7 +641,7 @@ def dipendenti():
                 ">
 
                <div style="display:flex;justify-content:space-between;alig-items:center;">
-               <img src="URL_LOGO" width="130">
+               <img src="https://github.com/GlucaTekmar/operativita-pdv/blob/main/logo.png" width="130">
                <div style=font-size:14px;
                color:#555;">
                {now_str().split(" ")[0]}
@@ -717,6 +717,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
