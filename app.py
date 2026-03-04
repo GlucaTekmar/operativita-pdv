@@ -650,7 +650,7 @@ def dipendenti():
 
                <hr style="margin:15px 0; border:none; border-top:2px solid #e5e5e5;">
 
-                {r["msg]}
+                {r["msg"]}
 
                  </div>
                 """, unsafe_allow_html=True)
@@ -717,6 +717,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
