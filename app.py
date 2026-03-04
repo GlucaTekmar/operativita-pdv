@@ -656,7 +656,7 @@ def dipendenti():
             """,
             unsafe_allow_html=True
         )
-        st.markdown(f"""{r['msg']}""",
+        st.markdown(r['msg'],
         unsafe_allow_html=True)
 
         # ===== ALLEGATO =====
@@ -722,6 +722,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
