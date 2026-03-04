@@ -624,6 +624,7 @@ def dipendenti():
         {now_str().split(" ")[0]}
         <div style="height:10px"></div>
         </div>
+        </div>
         
         QUESTA MATTINA NON SONO PREVISTE PROMO-ATTIVITA' PARTICOLARI. BUON LAVORO
         </div>
@@ -730,6 +731,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
