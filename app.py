@@ -525,8 +525,8 @@ def admin():
 def dipendenti():
     st.markdown("""
     <style>
-    [data-testid="stAppViewContainer"] {background-color: #ffe5e5;}
-    label, h1, h2, h3 {color:black;}
+    [data-testid="stAppViewContainer"] {background-color: #ffcccc;}
+    label, h1, h2, h3 {color:white;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -648,7 +648,7 @@ def dipendenti():
                </div>
                </div>
 
-               <hr style="margin:15px 0; border:none; border-top:3px solid #dddddd;">
+               <hr style="margin:20px 0; border:none; border-top:3px solid #e60000;">
 
                 {r["msg"]}
 
@@ -717,6 +717,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
