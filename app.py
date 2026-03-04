@@ -525,7 +525,7 @@ def admin():
 def dipendenti():
     st.markdown("""
     <style>
-    [data-testid="stAppViewContainer"] {background-color: #ffcccc;}
+    [data-testid="stAppViewContainer"] {background-color: #f2b6b6;}
     label, h1, h2, h3 {color:white;}
     </style>
     """, unsafe_allow_html=True)
@@ -539,6 +539,8 @@ def dipendenti():
     border-radius:12px;
     box-sizing:border-box;
     overflow-wrap:anywhere;
+    line-height:1.5;
+    font-size:16px;
 }
 
     .msgbox p,
@@ -613,6 +615,16 @@ def dipendenti():
     if not mostrati:
         st.markdown("""
         <div class='msgbox' style='text-align:center;font-weight:800;font-size:18px;'>
+
+        <div
+        style="display:flex;justify-content:space-between;align-items:center;">
+        <img
+        src="htpps://rawgithubusercontent.com/GlucaTekmar/operativita-pdv/main/logo.png" width="130">
+        <div style=font-size:14px;color:#e555;">
+        {now_str().split(" ")[0]}
+        </div>
+        </div>
+        
         QUESTA MATTINA NON SONO PREVISTE PROMO-ATTIVITA' PARTICOLARI. BUON LAVORO
         </div>
         """, unsafe_allow_html=True)
@@ -633,7 +645,7 @@ def dipendenti():
                 background-color: white;
                 padding: 25px;
                 border-radius: 16px;
-                margin-bottom: 40px;
+                margin-bottom: 60px;
                 color: black;
                 box-shadow: 0 6px 28px rgba(0,0,0,0.18);
                 border-top: 6px solid #e60000;
@@ -717,6 +729,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
