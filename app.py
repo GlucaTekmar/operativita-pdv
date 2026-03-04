@@ -620,16 +620,16 @@ def dipendenti():
         style="display:flex;justify-content:space-between;align-items:center;">
         <img
         src="htpps://raw.githubusercontent.com/GlucaTekmar/operativita-pdv/main/logo.png" width="130">
-        <div style=font-size:14px;color:#e555;">
+        <div style=font-size:14px;color:#666;">
         {now_str().split(" ")[0]}
-        </div>
+        <div style="height:10px"></div>
         </div>
         
         QUESTA MATTINA NON SONO PREVISTE PROMO-ATTIVITA' PARTICOLARI. BUON LAVORO
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
         if st.checkbox("Spunta CONFERMA DI PRESENZA"):
             new = pd.DataFrame([[now_str(), scelta, "PRESENZA"]], columns=log_df.columns)
@@ -654,12 +654,11 @@ def dipendenti():
                 border: 2px solid #e5e5e5;
                 ">
 
-               <div style="display:flex;justify-content:space-between;alig-items:center;">
+               <div style="display:flex;justify-content:space-between;align-items:center;">
                <img src="https://raw.githubusercontent.com/GlucaTekmar/operativita-pdv/main/logo.png" width="130">
                <div style=font-size:14px;
                color:#555;">
                {now_str().split(" ")[0]}
-               </div>
                </div>
 
                <hr style="margin:20px 0; border:none; border-top:3px solid #e60000;">
@@ -731,6 +730,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
