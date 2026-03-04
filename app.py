@@ -525,7 +525,7 @@ def admin():
 def dipendenti():
     st.markdown("""
     <style>
-    .stApp {background:#f4f4f4;}
+    .stApp {background:#fff5f5;}
     label, h1, h2, h3 {color:black;}
     </style>
     """, unsafe_allow_html=True)
@@ -632,23 +632,23 @@ def dipendenti():
                 <div lang="it" translate="no" style="
                 background-color: white;
                 padding: 25px;
-                border-radius: 12px;
+                border-radius: 16px;
                 margin-bottom: 20px;
                 color: black;
-                box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-                border-top: 6px solid #d50000;
+                box-shadow: 0 6px 28px rgba(0,0,0,0.18);
+                border-top: 6px solid #e60000;
                 border: 2px solid #e5e5e5;
                 ">
 
                <div style="display:flex;justify-content:space-between;alig-items:center;">
-               <img src="https://github.com/GlucaTekmar/operativita-pdv/blob/main/logo.png" width="130">
+               <img src="https://raw.githubusercontent.com/GlucaTekmar/operativita-pdv/main/logo.png" width="130">
                <div style=font-size:14px;
                color:#555;">
                {now_str().split(" ")[0]}
                </div>
                </div>
 
-               <hr style="margin:15px 0; border:none; border-top:2px solid #e5e5e5;">
+               <hr style="margin:15px 0; border:none; border-top:3px solid #dddddd;">
 
                 {r["msg"]}
 
@@ -717,6 +717,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
