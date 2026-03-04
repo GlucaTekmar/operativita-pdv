@@ -633,7 +633,7 @@ def dipendenti():
                 background-color: white;
                 padding: 25px;
                 border-radius: 16px;
-                margin-bottom: 20px;
+                margin-bottom: 40px;
                 color: black;
                 box-shadow: 0 6px 28px rgba(0,0,0,0.18);
                 border-top: 6px solid #e60000;
@@ -717,6 +717,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
