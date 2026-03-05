@@ -84,6 +84,8 @@ input, textarea, select {
   color: #D50000 !important;
   border: 2px solid #000 !important;
   border-radius: 8px !important;
+  html, body {overflow-x: hidden;}
+  img {max-width: 100%; height: auto;}
 }
 label { color:#000 !important; font-weight:800 !important; }
 
@@ -717,6 +719,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
