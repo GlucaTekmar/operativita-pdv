@@ -396,6 +396,9 @@ def admin():
         pdv_ids = st.text_area("ID PDV (uno per riga)", height=140)
 
         if st.button("SALVA MESSAGGIO"):
+            if not os.path.exists(MSG_FILE):
+
+            pd.DataFrame(columns=["msg","inizio","fine","pdv_ids","file"]).to_csv(MSG_FILE,index=False)
             df = load_csv(MSG_FILE, ["msg", "inizio", "fine", "pdv_ids", "file"])
 
             filename = ""
@@ -727,6 +730,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
