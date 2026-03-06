@@ -400,9 +400,9 @@ def admin():
             filename = ""
             if uploaded:
                 filename = f"{int(time.time())}_{uploaded.name}"
-                with open(f"media/{uploaded.name}", "wb") as f:
+                with open(f"media/{filename}", "wb") as f:
                     f.write(uploaded.getbuffer())
-                filename = f"media/{uploaded.name}"
+                filename = f"media/{filename}"
 
             new = pd.DataFrame([[
                 msg,
@@ -720,6 +720,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
