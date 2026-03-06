@@ -398,11 +398,15 @@ def admin():
             df = load_csv(MSG_FILE, ["msg", "inizio", "fine", "pdv_ids", "file"])
 
             filename = ""
-            if uploaded:
+            
+            if uploaded is not None:
                 filename = f"{int(time.time())}_{uploaded.name}"
-                with open(f"media/{filename}", "wb") as f:
+                filepath = f"media/{filename}"
+                
+                with open(fiilepath, "wb") as f:
                     f.write(uploaded.getbuffer())
-                filename = f"media/{filename}"
+                
+                filename = filepath
 
             new = pd.DataFrame([[
                 msg,
@@ -720,6 +724,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
