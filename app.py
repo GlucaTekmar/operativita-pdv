@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
+import time
 from io import BytesIO
 from streamlit_quill import st_quill
 import re
@@ -726,6 +727,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
