@@ -403,6 +403,8 @@ def admin():
                 filename = f"{int(time.time())}_{uploaded.name}"
                 filepath = f"media/{filename}"
                 
+                os.makedirs("media", exist_ok=True)
+                
                 with open(fiilepath, "wb") as f:
                     f.write(uploaded.getbuffer())
                 
@@ -724,6 +726,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
