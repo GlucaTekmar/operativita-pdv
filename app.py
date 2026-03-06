@@ -660,7 +660,7 @@ def dipendenti():
                 
         # ===== ALLEGATO =====
     if r["file"]:
-        path = os.path.join("media", r["file"].replace("media/",""))
+        path = r["file"]
         if os.path.exists(path):
     
                     # Immagine extra
@@ -720,6 +720,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
