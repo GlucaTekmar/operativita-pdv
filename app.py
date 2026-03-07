@@ -26,11 +26,15 @@ MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 st.set_page_config(page_title="Operatività PDV", layout="wide")
 
 # --------------------------
-# CSS CARD
+# CSS + SFONDO
 # --------------------------
 
 st.markdown("""
 <style>
+
+.stApp{
+background-color:#b30000;
+}
 
 .card{
 background:white;
@@ -39,6 +43,7 @@ padding:22px;
 box-shadow:0 5px 15px rgba(0,0,0,0.25);
 margin-bottom:25px;
 max-width:900px;
+width:100%;
 }
 
 .header{
@@ -219,87 +224,109 @@ if mode=="ADMIN":
     if pw!=ADMIN_PASSWORD:
         st.stop()
 
-    st.title("Area Admin")
+    admin_page = st.sidebar.radio("Sezione",["MESSAGGI","REPORT"])
 
-    st.subheader("Lista Punti Vendita")
+    colA,colB = st.columns(2)
 
-    current_list = "\n".join(pdv_df["pdv_id"].astype(str)+" , "+pdv_df["pdv_nome"].astype(str))
+    if colA.button("AGGIORNA"):
+        st.rerun()
 
-    txt = st.text_area("LISTA PDV (id,nome)",value=current_list,height=200)
+    if colB.button("LOGOUT"):
+        st.session_state.clear()
+        st.rerun()
 
-    c1,c2 = st.columns(2)
+    if admin_page=="MESSAGGI":
 
-    if c1.button("SALVA"):
+        st.title("Gestione Messaggi")
 
-        rows=[]
+        st.subheader("Lista Punti Vendita")
 
-        for r in txt.split("\n"):
-            if "," in r:
-                pid,name=r.split(",",1)
-                rows.append({
-                    "pdv_id":pid.strip(),
-                    "pdv_nome":name.strip()
-                })
+        current_list = "\n".join(pdv_df["pdv_id"].astype(str)+" , "+pdv_df["pdv_nome"].astype(str))
 
-        write_csv(PDV_FILE,pd.DataFrame(rows))
-        st.success("Lista salvata")
+        txt = st.text_area("LISTA PDV (id,nome)",value=current_list,height=200)
 
-    if c2.button("PULISCI LISTA"):
-        pd.DataFrame(columns=["pdv_id","pdv_nome"]).to_csv(PDV_FILE,index=False)
-        st.success("Lista pulita")
+        c1,c2 = st.columns(2)
 
-    st.divider()
+        if c1.button("SALVA"):
 
-    st.subheader("Nuovo Messaggio")
+            rows=[]
 
-    titolo = st.text_input("Titolo")
+            for r in txt.split("\n"):
+                if "," in r:
+                    pid,name=r.split(",",1)
+                    rows.append({
+                        "pdv_id":pid.strip(),
+                        "pdv_nome":name.strip()
+                    })
 
-    msg = st_quill()
+            write_csv(PDV_FILE,pd.DataFrame(rows))
+            st.success("Lista salvata")
+            st.rerun()
 
-    pdv_target = st.text_area("PDV destinatari (id uno per riga)")
+        if c2.button("PULISCI LISTA"):
+            pd.DataFrame(columns=["pdv_id","pdv_nome"]).to_csv(PDV_FILE,index=False)
+            st.success("Lista pulita")
+            st.rerun()
 
-    c1,c2 = st.columns(2)
+        st.divider()
 
-    data_inizio = c1.date_input("Data inizio",value=date.today())
-    data_fine = c2.date_input("Data fine",value=date.today())
+        st.subheader("Nuovo Messaggio")
 
-    file = st.file_uploader("Allegato",type=["png","jpg","jpeg","pdf"])
+        titolo = st.text_input("Titolo")
 
-    if st.button("INVIA MESSAGGIO"):
+        msg = st_quill()
 
-        msg_id=str(uuid.uuid4())
+        pdv_target = st.text_area("PDV destinatari (id uno per riga)")
 
-        fname=""
+        c1,c2 = st.columns(2)
 
-        if file:
+        data_inizio = c1.date_input("Data inizio",value=date.today())
+        data_fine = c2.date_input("Data fine",value=date.today())
 
-            ext=file.name.split(".")[-1]
-            fname=f"{msg_id}.{ext}"
+        file = st.file_uploader("Allegato",type=["png","jpg","jpeg","pdf"])
 
-            with open(MEDIA_DIR/fname,"wb") as f:
-                f.write(file.getbuffer())
+        if st.button("INVIA MESSAGGIO"):
 
-        new={
-            "msg_id":msg_id,
-            "titolo":titolo,
-            "msg":msg,
-            "pdv_ids":pdv_target.replace("\n","|"),
-            "file":fname,
-            "data_inizio":data_inizio,
-            "data_fine":data_fine,
-            "stato":"ATTIVO"
-        }
+            msg_id=str(uuid.uuid4())
 
-        msg_df=pd.concat([msg_df,pd.DataFrame([new])],ignore_index=True)
-        write_csv(MSG_FILE,msg_df)
+            fname=""
 
-        st.success("Messaggio inviato")
+            if file:
 
-    st.divider()
+                ext=file.name.split(".")[-1]
+                fname=f"{msg_id}.{ext}"
 
-    st.subheader("LOG")
+                with open(MEDIA_DIR/fname,"wb") as f:
+                    f.write(file.getbuffer())
 
-    st.dataframe(read_csv(LOG_FILE),use_container_width=True)
+            new={
+                "msg_id":msg_id,
+                "titolo":titolo,
+                "msg":msg,
+                "pdv_ids":pdv_target.replace("\n","|"),
+                "file":fname,
+                "data_inizio":data_inizio,
+                "data_fine":data_fine,
+                "stato":"ATTIVO"
+            }
+
+            msg_df=pd.concat([msg_df,pd.DataFrame([new])],ignore_index=True)
+            write_csv(MSG_FILE,msg_df)
+
+            st.success("Messaggio inviato")
+            st.rerun()
+
+        st.divider()
+
+        st.subheader("MESSAGGI SALVATI")
+
+        st.dataframe(read_csv(MSG_FILE),use_container_width=True)
+
+    if admin_page=="REPORT":
+
+        st.title("Report Letture")
+
+        st.dataframe(read_csv(LOG_FILE),use_container_width=True)
 
 # --------------------------
 # DIPENDENTE
