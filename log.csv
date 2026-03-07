@@ -1,1 +1,1 @@
-timestamp,pdv,msg_id,azione
+data,pdv_id,pdv_nome,msg_id,apertura_timestamp,lettura_timestamp
