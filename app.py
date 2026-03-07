@@ -398,7 +398,7 @@ def admin():
         if st.button("SALVA MESSAGGIO"):
             if not os.path.exists(MSG_FILE):
 
-                pd.DataFrame(columns=["msg","inizio","fine","pdv_ids","file"]).to_csv(MSG_FILE,index=False)
+                pd.DataFrame(columns=["msg","inizio","fine","pdv_ids","file"])
                 df = load_csv(MSG_FILE,["msg", "inizio", "fine", "pdv_ids", "file"])
 
             filename = ""
@@ -411,13 +411,13 @@ def admin():
                     f.write(uploaded.getbuffer())
                 filename = filepath
 
-         new = pd.DataFrame([[
-                msg,
-                data_inizio.strftime("%d-%m-%Y"),
-                data_fine.strftime("%d-%m-%Y"),
-                normalize_lines(pdv_ids),
-                filename
-            ]], columns=df.columns)
+                new = pd.DataFrame([[
+                    msg,
+                    data_inizio.strftime("%d-%m-%Y"),
+                    data_fine.strftime("%d-%m-%Y"),
+                    normalize_lines(pdv_ids),
+                    filename
+                ]], columns=df.columns)
 
             save_csv(pd.concat([df, new], ignore_index=True), MSG_FILE)
             st.success("Messaggio salvato")
@@ -727,6 +727,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
