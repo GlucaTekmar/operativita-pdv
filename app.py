@@ -12,7 +12,7 @@ from streamlit_quill import st_quill
 ADMIN_PASSWORD = "GianAri2026"
 HOME_URL = "https://eu.jotform.com/app/253605296903360"
 
-BASE_DIR = Path("/var/dati")
+BASE_DIR = Path("/var/data")
 
 PDV_FILE = BASE_DIR / "pdv.csv"
 MSG_FILE = BASE_DIR / "messaggi.csv"
@@ -421,3 +421,4 @@ else:
             if st.checkbox("Confermo lettura",key=m["msg_id"]):
 
                 log_read(pid,m["msg_id"])
+
