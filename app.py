@@ -1,11 +1,13 @@
+# APP.PY DEFINITIVO
+
 import streamlit as st
 import pandas as pd
 import os
 import uuid
-import base64
 import time
-from datetime import datetime
+from datetime import datetime, date
 from pathlib import Path
+from streamlit_quill import st_quill
 
 ADMIN_PASSWORD = "GianAri2026"
 HOME_URL = "https://eu.jotform.com/app/253605296903360"
@@ -17,270 +19,378 @@ MSG_FILE = BASE_DIR / "messaggi.csv"
 LOG_FILE = BASE_DIR / "log.csv"
 
 MEDIA_DIR = BASE_DIR / "media"
-LOGO_FILE = BASE_DIR / "logo.png"
+LOCK_FILE = BASE_DIR / "log.lock"
 
-MEDIA_DIR.mkdir(exist_ok=True)
+MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 
 st.set_page_config(page_title="Operatività PDV", layout="wide")
 
+# --------------------------
+# CSS CARD
+# --------------------------
+
 st.markdown("""
 <style>
-body { background-color:#b30000; }
-.main { background-color:#b30000; }
-h1,h2,h3,h4,p,label { color:white; }
-.stButton>button {
-background-color:black;
-color:white;
-border-radius:6px;
-border:none;
-padding:8px 14px;
+
+.card{
+background:white;
+border-radius:14px;
+padding:22px;
+box-shadow:0 5px 15px rgba(0,0,0,0.25);
+margin-bottom:25px;
+max-width:900px;
 }
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+font-weight:bold;
+}
+
+.sep{
+border-top:3px solid #b30000;
+margin:14px 0;
+}
+
+.title{
+font-size:22px;
+font-weight:bold;
+text-align:center;
+}
+
+.body{
+font-size:18px;
+margin-top:12px;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
-def safe_load_csv(path, columns):
+# --------------------------
+# FILE SAFE FUNCTIONS
+# --------------------------
+
+def backup_file(path):
+    bak = path.with_suffix(".bak")
+    if path.exists():
+        try:
+            import shutil
+            shutil.copy(path, bak)
+        except:
+            pass
+
+def ensure_csv(path, columns):
 
     if not path.exists():
-        df = pd.DataFrame(columns=columns)
-        df.to_csv(path, index=False)
+        pd.DataFrame(columns=columns).to_csv(path,index=False)
+        return
 
     try:
         df = pd.read_csv(path)
+        if df.empty and len(columns)>0:
+            pd.DataFrame(columns=columns).to_csv(path,index=False)
     except:
-        df = pd.DataFrame(columns=columns)
-        df.to_csv(path, index=False)
+        bak = path.with_suffix(".bak")
+        if bak.exists():
+            import shutil
+            shutil.copy(bak,path)
+        else:
+            pd.DataFrame(columns=columns).to_csv(path,index=False)
 
-    return df
+# --------------------------
+# INIT FILES
+# --------------------------
 
-def acquire_lock(file):
+ensure_csv(PDV_FILE,["pdv_id","pdv_nome"])
 
-    lock = str(file) + ".lock"
+ensure_csv(MSG_FILE,[
+"msg_id","titolo","msg","pdv_ids","file","data_inizio","data_fine","stato"
+])
 
-    while os.path.exists(lock):
-        time.sleep(0.05)
+ensure_csv(LOG_FILE,[
+"data","pdv_id","pdv_nome","msg_id","apertura_timestamp","lettura_timestamp"
+])
 
-    open(lock, "w").close()
+# --------------------------
+# CSV READ WRITE
+# --------------------------
 
-    return lock
+def read_csv(path):
+    try:
+        return pd.read_csv(path)
+    except:
+        return pd.DataFrame()
 
-def release_lock(lock):
+def write_csv(path, df):
+    backup_file(path)
+    df.to_csv(path,index=False)
 
-    if os.path.exists(lock):
-        os.remove(lock)
+# --------------------------
+# LOCK
+# --------------------------
 
-def safe_save_csv(df, path):
+def acquire_lock():
+    while LOCK_FILE.exists():
+        time.sleep(0.1)
+    open(LOCK_FILE,"w").close()
 
-    lock = acquire_lock(path)
+def release_lock():
+    if LOCK_FILE.exists():
+        os.remove(LOCK_FILE)
 
-    temp = str(path) + ".tmp"
-    df.to_csv(temp, index=False)
-    os.replace(temp, path)
+# --------------------------
+# LOG SYSTEM
+# --------------------------
 
-    release_lock(lock)
+def log_open(pdv_id,pdv_nome,msg_id):
 
-def log_event(pdv, msg_id, action):
+    today = date.today().isoformat()
 
-    today = datetime.now().date().isoformat()
+    acquire_lock()
 
-    log = safe_load_csv(LOG_FILE, ["timestamp","pdv","msg_id","azione"])
+    df = read_csv(LOG_FILE)
 
-    if action == "apertura":
+    existing = df[
+        (df["data"]==today) &
+        (df["pdv_id"]==pdv_id) &
+        (df["msg_id"]==msg_id)
+    ]
 
-        today_logs = log[
-            (log["pdv"] == pdv) &
-            (log["msg_id"] == msg_id) &
-            (log["timestamp"].str.startswith(today))
-        ]
+    if existing.empty:
 
-        if len(today_logs) > 0:
-            return
+        new = {
+            "data":today,
+            "pdv_id":pdv_id,
+            "pdv_nome":pdv_nome,
+            "msg_id":msg_id,
+            "apertura_timestamp":datetime.now().strftime("%H:%M:%S"),
+            "lettura_timestamp":""
+        }
 
-    if action == "conferma":
+        df = pd.concat([df,pd.DataFrame([new])],ignore_index=True)
+        write_csv(LOG_FILE,df)
 
-        existing = log[
-            (log["pdv"] == pdv) &
-            (log["msg_id"] == msg_id) &
-            (log["azione"] == "conferma") &
-            (log["timestamp"].str.startswith(today))
-        ]
+    release_lock()
 
-        if len(existing) > 0:
-            return
+def log_read(pdv_id,msg_id):
 
-    new = {
-        "timestamp": datetime.now().isoformat(),
-        "pdv": pdv,
-        "msg_id": msg_id,
-        "azione": action
-    }
+    today = date.today().isoformat()
 
-    log = pd.concat([log, pd.DataFrame([new])], ignore_index=True)
+    acquire_lock()
 
-    safe_save_csv(log, LOG_FILE)
+    df = read_csv(LOG_FILE)
 
-def save_file(uploaded, msg_id):
+    idx = df[
+        (df["data"]==today) &
+        (df["pdv_id"]==pdv_id) &
+        (df["msg_id"]==msg_id)
+    ].index
 
-    if uploaded is None:
-        return ""
+    if len(idx)>0:
 
-    ext = uploaded.name.split(".")[-1].lower()
+        if df.loc[idx[0],"lettura_timestamp"]=="":
+            df.loc[idx[0],"lettura_timestamp"] = datetime.now().strftime("%H:%M:%S")
+            write_csv(LOG_FILE,df)
 
-    filename = f"{msg_id}.{ext}"
+    release_lock()
 
-    path = MEDIA_DIR / filename
+# --------------------------
+# SIDEBAR
+# --------------------------
 
-    with open(path, "wb") as f:
-        f.write(uploaded.getbuffer())
+st.sidebar.markdown("### Modalità")
 
-    return filename
+mode = st.sidebar.radio("",["DIPENDENTE","ADMIN"])
 
-def show_pdf(path):
+st.markdown(f"<a href='{HOME_URL}' target='_self'><button>HOME</button></a>", unsafe_allow_html=True)
 
-    with open(path, "rb") as f:
-        b64 = base64.b64encode(f.read()).decode()
+pdv_df = read_csv(PDV_FILE)
+msg_df = read_csv(MSG_FILE)
 
-    pdf_html = f"""
-    <iframe src="data:application/pdf;base64,{b64}"
-    width="100%" height="800"></iframe>
-    """
+# --------------------------
+# ADMIN
+# --------------------------
 
-    st.markdown(pdf_html, unsafe_allow_html=True)
+if mode=="ADMIN":
 
-col1, col2 = st.columns([1,5])
+    pw = st.sidebar.text_input("Password",type="password")
 
-with col1:
-    if LOGO_FILE.exists():
-        st.image(str(LOGO_FILE), width=120)
-
-with col2:
-    st.markdown(f'<a href="{HOME_URL}"><button>HOME</button></a>', unsafe_allow_html=True)
-
-st.markdown("---")
-
-pdv_df = safe_load_csv(PDV_FILE, ["pdv_id","pdv_nome"])
-
-msg_df = safe_load_csv(MSG_FILE, ["msg_id","msg","pdv_ids","file","data"])
-
-mode = st.sidebar.radio("Modalità", ["DIPENDENTE","ADMIN"])
-
-if mode == "ADMIN":
-
-    pwd = st.sidebar.text_input("Password", type="password")
-
-    if pwd != ADMIN_PASSWORD:
+    if pw!=ADMIN_PASSWORD:
         st.stop()
 
     st.title("Area Admin")
 
-    message = st.text_area("Messaggio")
+    st.subheader("Lista Punti Vendita")
 
-    pdv_input = st.text_area("PDV destinatari (uno per riga)")
+    current_list = "\n".join(pdv_df["pdv_id"].astype(str)+" , "+pdv_df["pdv_nome"].astype(str))
 
-    file = st.file_uploader("Allegato", type=["png","jpg","jpeg","pdf"])
+    txt = st.text_area("LISTA PDV (id,nome)",value=current_list,height=200)
+
+    c1,c2 = st.columns(2)
+
+    if c1.button("SALVA"):
+
+        rows=[]
+
+        for r in txt.split("\n"):
+            if "," in r:
+                pid,name=r.split(",",1)
+                rows.append({
+                    "pdv_id":pid.strip(),
+                    "pdv_nome":name.strip()
+                })
+
+        write_csv(PDV_FILE,pd.DataFrame(rows))
+        st.success("Lista salvata")
+
+    if c2.button("PULISCI LISTA"):
+        pd.DataFrame(columns=["pdv_id","pdv_nome"]).to_csv(PDV_FILE,index=False)
+        st.success("Lista pulita")
+
+    st.divider()
+
+    st.subheader("Nuovo Messaggio")
+
+    titolo = st.text_input("Titolo")
+
+    msg = st_quill()
+
+    pdv_target = st.text_area("PDV destinatari (id uno per riga)")
+
+    c1,c2 = st.columns(2)
+
+    data_inizio = c1.date_input("Data inizio",value=date.today())
+    data_fine = c2.date_input("Data fine",value=date.today())
+
+    file = st.file_uploader("Allegato",type=["png","jpg","jpeg","pdf"])
 
     if st.button("INVIA MESSAGGIO"):
 
-        if message.strip() == "":
-            st.error("Messaggio vuoto")
-            st.stop()
+        msg_id=str(uuid.uuid4())
 
-        pdv_ids = [x.strip() for x in pdv_input.splitlines() if x.strip()]
+        fname=""
 
-        msg_id = str(uuid.uuid4())
+        if file:
 
-        filename = save_file(file, msg_id)
+            ext=file.name.split(".")[-1]
+            fname=f"{msg_id}.{ext}"
 
-        new = {
-            "msg_id": msg_id,
-            "msg": message,
-            "pdv_ids": ",".join(pdv_ids),
-            "file": filename,
-            "data": datetime.now().strftime("%Y-%m-%d %H:%M")
+            with open(MEDIA_DIR/fname,"wb") as f:
+                f.write(file.getbuffer())
+
+        new={
+            "msg_id":msg_id,
+            "titolo":titolo,
+            "msg":msg,
+            "pdv_ids":pdv_target.replace("\n","|"),
+            "file":fname,
+            "data_inizio":data_inizio,
+            "data_fine":data_fine,
+            "stato":"ATTIVO"
         }
 
-        msg_df = pd.concat([msg_df, pd.DataFrame([new])], ignore_index=True)
-
-        safe_save_csv(msg_df, MSG_FILE)
+        msg_df=pd.concat([msg_df,pd.DataFrame([new])],ignore_index=True)
+        write_csv(MSG_FILE,msg_df)
 
         st.success("Messaggio inviato")
 
-    st.markdown("---")
+    st.divider()
 
-    for _, row in msg_df.sort_values("data", ascending=False).iterrows():
+    st.subheader("LOG")
 
-        st.markdown(f"**{row['data']}**")
+    st.dataframe(read_csv(LOG_FILE),use_container_width=True)
 
-        st.write(row["msg"])
+# --------------------------
+# DIPENDENTE
+# --------------------------
 
-        if row["file"]:
+else:
 
-            file_path = MEDIA_DIR / row["file"]
+    st.title("Seleziona PDV")
 
-            if file_path.exists():
+    if pdv_df.empty:
+        st.warning("Nessun PDV disponibile")
+        st.stop()
 
-                if row["file"].endswith(".pdf"):
-                    show_pdf(file_path)
-                else:
-                    st.image(str(file_path))
+    options = pdv_df["pdv_id"].astype(str)+" - "+pdv_df["pdv_nome"]
 
-        st.markdown("---")
+    sel = st.selectbox("PDV",options)
 
-if mode == "DIPENDENTE":
+    if st.button("ENTRA"):
 
-    if "pdv_selected" not in st.session_state:
-        st.session_state.pdv_selected = None
+        pid = sel.split(" - ")[0]
+        st.session_state["pdv"]=pid
+        st.rerun()
 
-    if st.session_state.pdv_selected is None:
+    if "pdv" in st.session_state:
 
-        st.title("Seleziona PDV")
+        pid = st.session_state["pdv"]
+        pdv_nome = pdv_df[pdv_df["pdv_id"].astype(str)==pid]["pdv_nome"].values[0]
 
-        options = pdv_df["pdv_id"] + " - " + pdv_df["pdv_nome"]
+        today=date.today()
 
-        choice = st.selectbox("PDV", options)
+        msgs = msg_df[
+            (msg_df["pdv_ids"].str.contains(pid,na=False)) &
+            (pd.to_datetime(msg_df["data_inizio"]).dt.date<=today) &
+            (pd.to_datetime(msg_df["data_fine"]).dt.date>=today)
+        ]
 
-        if st.button("ENTRA"):
+        if msgs.empty:
 
-            st.session_state.pdv_selected = choice.split(" - ")[0]
+            st.markdown(f"""
+            <div class='card'>
+            <div class='header'>
+            <div>GD MEDIA</div>
+            <div>{today}</div>
+            </div>
 
-            st.rerun()
+            <div class='sep'></div>
 
-    else:
+            <div class='title'>NESSUNA ATTIVITÀ</div>
 
-        pdv_id = st.session_state.pdv_selected
+            <div class='sep'></div>
 
-        if st.button("TORNA ALLA LISTA PDV"):
-            st.session_state.pdv_selected = None
-            st.rerun()
+            <div class='body'>
+            OGGI SU QUESTO PDV NON SONO PREVISTE PROMO e/o ATTIVITÀ PARTICOLARI.<br><br>
+            BUON LAVORO.
+            </div>
+            </div>
+            """,unsafe_allow_html=True)
 
-        st.title(f"Messaggi PDV {pdv_id}")
+        for _,m in msgs.iterrows():
 
-        messages = msg_df[msg_df["pdv_ids"].str.contains(pdv_id, na=False)]
+            log_open(pid,pdv_nome,m["msg_id"])
 
-        if len(messages) == 0:
-            st.info("Nessun messaggio")
+            st.markdown(f"""
+            <div class='card'>
+            <div class='header'>
+            <div>GD MEDIA</div>
+            <div>{today}</div>
+            </div>
 
-        for _, row in messages.sort_values("data", ascending=False).iterrows():
+            <div class='sep'></div>
 
-            st.markdown(f"### {row['data']}")
+            <div class='title'>{m["titolo"]}</div>
 
-            st.write(row["msg"])
+            <div class='sep'></div>
 
-            log_event(pdv_id, row["msg_id"], "apertura")
+            <div class='body'>{m["msg"]}</div>
+            </div>
+            """,unsafe_allow_html=True)
 
-            if row["file"]:
+            if m["file"]:
 
-                file_path = MEDIA_DIR / row["file"]
+                path = MEDIA_DIR/m["file"]
 
-                if file_path.exists():
+                if path.exists():
 
-                    if row["file"].endswith(".pdf"):
-                        show_pdf(file_path)
+                    if m["file"].lower().endswith(".pdf"):
+                        with open(path,"rb") as f:
+                            st.download_button("Apri PDF",f.read(),file_name=m["file"])
                     else:
-                        st.image(str(file_path))
+                        st.image(str(path))
 
-            confirm = st.checkbox("Conferma lettura", key=row["msg_id"])
+            if st.checkbox("Confermo lettura",key=m["msg_id"]):
 
-            if confirm:
-                log_event(pdv_id, row["msg_id"], "conferma")
-
-            st.markdown("---")
+                log_read(pid,m["msg_id"])
