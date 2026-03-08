@@ -12,7 +12,13 @@ st.markdown(""
 .stApp {background-color:#c8102e;
 }
 
-[data-testid="stAppViewContainer"]{background-color:#c8102e;
+[data-testid="stAppViewContainer"] {background-color:#c8102e;
+}
+
+[data-testid="stVerticalBlock"] {background-color:#c8102e;
+}
+
+[data-testid="stBlock"] {background-color:#c8102e;
 }
 
 </style> 
@@ -520,5 +526,6 @@ def main():
 
 if __name__=="__main__":
     main()
+
 
 
