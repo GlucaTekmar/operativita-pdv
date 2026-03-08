@@ -816,54 +816,86 @@ def employee_page_one() -> None:
         st.rerun()
 
 
-def employee_page_two() -> None:
-    render_top_header()
+def employee_page_two():
 
-    pdv_id = st.session_state.get("employee_selected_pdv_id", "")
-    pdv_nome = st.session_state.get("employee_selected_pdv_name", "")
+    st.image("https://raw.githubusercontent.com/GlucaTekmar/operativita-pdv/refs/heads/main/logo.png", width=140)
 
-    top_cols = st.columns([1, 1, 5])
-    with top_cols[0]:
-        if st.button("TORNA ALLA LISTA PDV", key="back_to_pdv_list"):
-            st.session_state.employee_page = 1
-            st.rerun()
-    with top_cols[1]:
-        st.markdown(
-            f'<a href="{HOME_URL}" target="_self" class="btn-link btn-link-dark">HOME</a>',
-            unsafe_allow_html=True,
-        )
+    st.markdown("## Messaggi operativi")
 
-    active_df = active_messages_for_pdv(pdv_id)
+    pdv_id = st.session_state.get("employee_pdv_id")
+    pdv_nome = st.session_state.get("employee_pdv_nome")
 
-    messages_to_show = []
-    if active_df.empty:
-        generic = build_generic_message()
-        messages_to_show.append(generic)
-        upsert_open_log(pdv_id, pdv_nome, generic["msg_id"])
-    else:
-        for _, row in active_df.iterrows():
-            messages_to_show.append(row.to_dict())
-            upsert_open_log(pdv_id, pdv_nome, row["msg_id"])
+    if not pdv_id:
+        st.warning("Nessun PDV selezionato")
+        return
 
-    for i, msg in enumerate(messages_to_show, start=1):
-        render_circular_message(i, msg, pdv_nome)
+    try:
+        messaggi = pd.read_csv("messaggi.csv")
+    except:
+        st.error("Errore lettura messaggi.csv")
+        return
 
-    st.markdown(
-        """
-        <div style="background:#ffffff;border-radius:8px;padding:20px;margin-top:12px;box-shadow:0 10px 22px rgba(0,0,0,0.18);">
-            <div style="color:#111111;font-size:1rem;font-weight:800;margin-bottom:8px;">Conferme</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    oggi = datetime.now().date()
 
-    read_key = f"read_confirm_{pdv_id}_{today_str()}"
-    read_confirm = st.checkbox("Spunta la CONFERMA DI LETTURA", key=read_key)
+    messaggi_attivi = []
 
-    if read_confirm:
-        for msg in messages_to_show:
-            mark_read_log(pdv_id, msg["msg_id"])
-        st.success("Conferma di lettura registrata.")
+    for _, r in messaggi.iterrows():
+
+        pdv_ids = str(r["pdv_ids"]).split("|")
+
+        if str(pdv_id) not in pdv_ids:
+            continue
+
+        inizio = datetime.strptime(r["data_inizio"], "%Y-%m-%d").date()
+        fine = datetime.strptime(r["data_fine"], "%Y-%m-%d").date()
+
+        if oggi >= inizio and oggi <= fine:
+            messaggi_attivi.append(r)
+
+    if not messaggi_attivi:
+        st.info("Nessuna attività prevista per questo PDV")
+        return
+
+    for i, msg in enumerate(messaggi_attivi, start=1):
+
+        st.divider()
+
+        st.markdown(f"### MESSAGGIO N.{i}")
+        st.markdown(f"**{pdv_nome}**")
+
+        st.write(msg["msg"])
+
+        if pd.notna(msg["file"]):
+
+            file_path = f"media/{msg['file']}"
+
+            if msg["file"].lower().endswith(".pdf"):
+                st.link_button("Apri PDF", file_path)
+
+            elif msg["file"].lower().endswith((".png",".jpg",".jpeg")):
+                st.image(file_path)
+
+    st.divider()
+
+    conferma = st.checkbox("Spunta la CONFERMA DI LETTURA")
+
+    if conferma:
+
+        log = pd.DataFrame([{
+            "data": datetime.now().date(),
+            "pdv_id": pdv_id,
+            "pdv_nome": pdv_nome,
+            "msg_id": "",
+            "apertura_timestamp": datetime.now(),
+            "lettura_timestamp": datetime.now()
+        }])
+
+        try:
+            log.to_csv("log.csv", mode="a", header=False, index=False)
+        except:
+            pass
+
+        st.success("Conferma registrata")
 
 
 # =========================
@@ -879,3 +911,4 @@ else:
         employee_page_one()
     else:
         employee_page_two()
+
