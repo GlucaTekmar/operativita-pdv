@@ -370,6 +370,12 @@ st.markdown(
         margin-bottom: 18px;
     }
 
+    .button {
+        background-color:#111 !importat;
+        color:white !importat;
+        border-radius:8px;
+    }
+    
     .btn-link, .btn-link:visited {
         display: inline-block;
         padding: 10px 18px;
@@ -822,8 +828,8 @@ def employee_page_two():
 
     st.markdown("## Messaggi operativi")
 
-    pdv_id = st.session_state.get("employee_pdv_id")
-    pdv_nome = st.session_state.get("employee_pdv_nome")
+    pdv_id = st.session_state.get("employee_selected_pdv_id")
+    pdv_name = st.session_state.get("employee_selected_pdv_name")
 
     if not pdv_id:
         st.warning("Nessun PDV selezionato")
@@ -911,5 +917,6 @@ else:
         employee_page_one()
     else:
         employee_page_two()
+
 
 
