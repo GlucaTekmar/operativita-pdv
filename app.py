@@ -6,6 +6,18 @@ import uuid
 from filelock import FileLock
 from streamlit_searchbox import st_searchbox
 
+st.markdown(""
+<style>
+
+.stApp {background-color:#c8102e;
+}
+
+[data-testid="stAppViewContainer"]{background-color:#c8102e;
+}
+
+</style> 
+""", unsafe_allow_html=True)
+                                  
 BASE="/var/data"
 MEDIA=f"{BASE}/media"
 
@@ -508,4 +520,5 @@ def main():
 
 if __name__=="__main__":
     main()
+
 
