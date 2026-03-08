@@ -799,7 +799,7 @@ def employee_page_one() -> None:
     with c2:
         st.markdown("<div style='height:28px'></div>", unsafe_allow_html=True)
         if st.button("✕", key="clear_pdv_select"):
-            st.session_state["employee_pdv_select"] = None
+            st.session_state.pop("employee_pdv_select", None)
             st.rerun()
 
     st.markdown('<div class="white-small-note">Digita le prime lettere della città</div>', unsafe_allow_html=True)
@@ -810,9 +810,9 @@ def employee_page_one() -> None:
             return
         pdv_id = selected_label.split(" - ", 1)[0].strip()
         pdv_name = selected_label.split(" - ", 1)[1].strip()
-        st.session_state.employee_selected_pdv_id = pdv_id
-        st.session_state.employee_selected_pdv_name = pdv_name
-        st.session_state.employee_page = 2
+        st.session_state["employee_selected_pdv_id"] = pdv_id
+        st.session_state["employee_selected_pdv_name"] = pdv_name
+        st.session_state["employee_page"] = 2
         st.rerun()
 
 
@@ -911,4 +911,5 @@ else:
         employee_page_one()
     else:
         employee_page_two()
+
 
