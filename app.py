@@ -166,7 +166,7 @@ def render_header(title):
 
 def employee_page_one():
 
-    render_header("SELEZIONA PDV)
+    render_header("SELEZIONARE PDV")
 
     pdv = load_pdv()
 
@@ -489,5 +489,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
