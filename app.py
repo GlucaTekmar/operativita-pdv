@@ -262,7 +262,7 @@ def employee_msgs():
 
         if msgs.empty:
 
-            container = st.container(border=True)
+            container = st.container()
 
             with container:
 
@@ -286,7 +286,7 @@ QUESTA MATTINA SUL PDV NON SONO PREVISTE PROMO - ATTIVITÀ PARTICOLARI.
 
             for _,row in msgs.iterrows():
 
-                container = st.container(border=True)
+                container = st.container()
 
                 with container:
 
@@ -526,6 +526,7 @@ def main():
 
 if __name__=="__main__":
     main()
+
 
 
 
