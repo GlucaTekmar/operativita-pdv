@@ -63,9 +63,9 @@ UPLOAD_DIR = "/var/dati/uploads"
 if not os.path.exists(UPLOAD_DIR):
     os.makedirs(UPLOAD_DIR)
 
-LOG_FILE = "/var/dati/log.csv"
-MSG_FILE = "/var/dati/messaggi.csv"
-PDV_FILE = "/var/dati/pdv.csv"
+LOG_FILE = "/var/data/log.csv"
+MSG_FILE = "/var/data/messaggi.csv"
+PDV_FILE = "/var/data/pdv.csv"
 
 HOME_URL = "https://eu.jotform.com/it/app/build/253605296903360"
 
@@ -716,3 +716,4 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
