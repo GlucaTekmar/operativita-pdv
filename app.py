@@ -5,6 +5,7 @@ import datetime
 import uuid
 from filelock import FileLock
 from streamlit_searchbox import st_searchbox
+from io import BytesIO
 
 st.markdown("""
 <style>
@@ -463,11 +464,19 @@ def admin_report():
 
         save_msgs(new.drop(columns=["seleziona"]))
 
-    st.download_button("Scarica CSV",msgs.to_csv(index=False),"messaggi.csv")
+        st.download_button("Scarica CSV",msgs.to_csv(index=False),"messaggi.csv")  
 
-    st.download_button("Scarica Excel",msgs.to_excel(index=False),"messaggi.xlsx")
+    buffer = BytesIO()
+    msgs.to_excel(buffer, index=False)
+    buffer.seek(0)
 
-    st.subheader("LOG")
+    st.download_button(
+        "Scarica Excel",
+        buffer,
+        "messaggi.xlsx"
+    )
+
+        st.subheader("LOG")
 
     logs["seleziona"]=False
 
@@ -481,7 +490,15 @@ def admin_report():
 
     st.download_button("Scarica CSV",logs.to_csv(index=False),"log.csv")
 
-    st.download_button("Scarica Excel",logs.to_excel(index=False),"log.xlsx")
+buffer = BytesIO()
+logs.to_excel(buffer, index=False)
+buffer.seek(0)
+
+st.download_button(
+    "Scarica Excel",
+    buffer,
+    "log.xlsx"
+)
 
     if st.button("TORNA ADMIN"):
 
@@ -526,6 +543,7 @@ def main():
 
 if __name__=="__main__":
     main()
+
 
 
 
