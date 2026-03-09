@@ -3,28 +3,9 @@ import pandas as pd
 import os
 import datetime
 import uuid
-from filelock import FileLock
-from streamlit_searchbox import st_searchbox
 from io import BytesIO
+from filelock import FileLock
 
-st.markdown("""
-<style>
-
-.stApp {background-color:#c8102e;
-}
-
-[data-testid="stAppViewContainer"] {background-color:#c8102e;
-}
-
-[data-testid="stVerticalBlock"] {background-color:#c8102e;
-}
-
-[data-testid="stBlock"] {background-color:#c8102e;
-}
-
-</style> 
-""", unsafe_allow_html=True)
-                                  
 BASE="/var/data"
 MEDIA=f"{BASE}/media"
 
@@ -36,9 +17,9 @@ LOGO="https://raw.githubusercontent.com/GlucaTekmar/operativita-pdv/refs/heads/m
 ADMIN_PASSWORD="GianAri2026"
 
 
-# ---------------------------------------------------
+# ---------------------------
 # STORAGE
-# ---------------------------------------------------
+# ---------------------------
 
 def ensure_storage():
 
@@ -50,12 +31,12 @@ def ensure_storage():
 
     if not os.path.exists(MSG_FILE):
         pd.DataFrame(columns=[
-            "msg_id","titolo","msg","pdv_ids","file","data_inizio","data_fine","stato"
+            "msg_id","titolo","msg","pdv_ids","file","data_inizio","data_fine"
         ]).to_csv(MSG_FILE,index=False)
 
     if not os.path.exists(LOG_FILE):
         pd.DataFrame(columns=[
-            "data","pdv_id","pdv_nome","msg_id","apertura_timestamp","lettura_timestamp"
+            "data","pdv_id","pdv_nome","msg_id","apertura","lettura"
         ]).to_csv(LOG_FILE,index=False)
 
 
@@ -77,9 +58,9 @@ def write_csv(df,path):
         os.replace(tmp,path)
 
 
-# ---------------------------------------------------
-# DATA
-# ---------------------------------------------------
+# ---------------------------
+# LOAD
+# ---------------------------
 
 def load_pdv():
     return read_csv(PDV_FILE)
@@ -100,9 +81,9 @@ def save_pdv(df):
     write_csv(df,PDV_FILE)
 
 
-# ---------------------------------------------------
+# ---------------------------
 # LOG
-# ---------------------------------------------------
+# ---------------------------
 
 def log_open(pdv_id,pdv_nome,msg_id):
 
@@ -123,8 +104,8 @@ def log_open(pdv_id,pdv_nome,msg_id):
             "pdv_id":pdv_id,
             "pdv_nome":pdv_nome,
             "msg_id":msg_id,
-            "apertura_timestamp":datetime.datetime.now(),
-            "lettura_timestamp":""
+            "apertura":datetime.datetime.now(),
+            "lettura":""
         }])
 
         logs=pd.concat([logs,new],ignore_index=True)
@@ -146,47 +127,39 @@ def log_read(pdv_id,msg_id):
 
     if len(idx)>0:
 
-        logs.loc[idx[0],"lettura_timestamp"]=datetime.datetime.now()
+        logs.loc[idx[0],"lettura"]=datetime.datetime.now()
 
         save_logs(logs)
 
 
-# ---------------------------------------------------
+# ---------------------------
 # CSS
-# ---------------------------------------------------
+# ---------------------------
 
-def css():
+st.markdown("""
+<style>
 
-    st.markdown("""
-    <style>
+.stApp {
+background:#c8102e;
+}
 
-    .main {background:#c8102e}
+.circolare {
+background:white;
+padding:30px;
+border-radius:8px;
+margin:auto;
+max-width:700px;
+}
 
-    .a4 {
-        background:white;
-        max-width:700px;
-        margin:auto;
-        padding:40px;
-        border-radius:6px;
-        box-shadow:0 5px 15px rgba(0,0,0,0.25)
-    }
-
-    .linea {
-        border-top:4px solid #c8102e;
-        margin:20px 0
-    }
-
-    </style>
-    """,unsafe_allow_html=True)
+</style>
+""",unsafe_allow_html=True)
 
 
-# ---------------------------------------------------
+# ---------------------------
 # EMPLOYEE PAGE 1
-# ---------------------------------------------------
+# ---------------------------
 
 def employee_select():
-
-    css()
 
     st.image(LOGO,width=200)
 
@@ -196,28 +169,21 @@ def employee_select():
 
     names=pdv["pdv_nome"].tolist()
 
-    def search(term):
-        return [n for n in names if term.lower() in n.lower()]
+    selected=st.selectbox("PDV",names)
 
-    selected=st_searchbox(search)
-
-    if selected:
+    if st.button("ENTRA"):
 
         st.session_state["pdv_nome"]=selected
         st.session_state["pdv_id"]=pdv[pdv.pdv_nome==selected].pdv_id.iloc[0]
 
-    if st.button("ENTRA"):
+        st.session_state.page="emp2"
 
-        if "pdv_id" in st.session_state:
-            st.session_state.page="emp2"
-            st.rerun()
-
-    st.markdown("[HOME](https://eu.jotform.com/app/253605296903360)")
+        st.rerun()
 
 
-# ---------------------------------------------------
-# FILTER MSG
-# ---------------------------------------------------
+# ---------------------------
+# FILTRO MESSAGGI
+# ---------------------------
 
 def active_msgs(pdv_id):
 
@@ -230,7 +196,7 @@ def active_msgs(pdv_id):
 
     def valid(r):
 
-        ids=str(r.pdv_ids or"").split("|")
+        ids=str(r.pdv_ids).split("|")
 
         if str(pdv_id) not in ids:
             return False
@@ -243,99 +209,75 @@ def active_msgs(pdv_id):
     return msgs[msgs.apply(valid,axis=1)]
 
 
-# ---------------------------------------------------
+# ---------------------------
 # EMPLOYEE PAGE 2
-# ---------------------------------------------------
+# ---------------------------
 
 def employee_msgs():
 
-    pdv_id = st.session_state["pdv_id"]
-    pdv_nome = st.session_state["pdv_nome"]
+    pdv_id=st.session_state["pdv_id"]
+    pdv_nome=st.session_state["pdv_nome"]
 
-    st.image(LOGO, width=180)
+    st.image(LOGO,width=180)
     st.title("INDICAZIONI OPERATIVE")
 
-    msgs = active_msgs(pdv_id)
+    msgs=active_msgs(pdv_id)
 
-    col1, col2, col3 = st.columns([1,3,1])
+    if msgs.empty:
 
-    with col2:
+        st.markdown('<div class="circolare">',unsafe_allow_html=True)
 
-        if msgs.empty:
+        st.subheader("NESSUNA ATTIVITÀ")
 
-            st.markdown('<div class="a4">', unsafe_allow_html=True)
+        st.markdown("**BUON LAVORO**")
 
-            st.subheader("NESSUNA ATTIVITÀ")
+        st.markdown("</div>",unsafe_allow_html=True)
 
-            st.markdown("""
-QUESTA MATTINA SUL PDV NON SONO PREVISTE PROMO - ATTIVITÀ PARTICOLARI.
+        log_open(pdv_id,pdv_nome,"GENERICO")
 
-**BUON LAVORO**
-""")
+    else:
 
-            st.markdown('</div>', unsafe_allow_html=True)
+        for _,row in msgs.iterrows():
 
-            log_open(pdv_id, pdv_nome, "GENERICO")
+            st.markdown('<div class="circolare">',unsafe_allow_html=True)
 
-        else:
+            st.subheader(row["titolo"])
 
-            for _, row in msgs.iterrows():
+            st.markdown(row["msg"])
 
-                st.markdown('<div class="a4">', unsafe_allow_html=True)
+            if pd.notna(row["file"]) and row["file"]!="":
 
-                col_logo, col_data = st.columns([4,1])
-                col_logo.image(LOGO, width=120)
-                col_data.write(datetime.date.today())
+                path=f"{MEDIA}/{row['file']}"
 
-                st.divider()
+                if os.path.exists(path):
 
-                st.subheader(row["titolo"])
+                    if path.lower().endswith(".pdf"):
 
-                st.markdown(row["msg"])
+                        with open(path,"rb") as f:
 
-                if pd.notna(row["file"]) and row["file"] != "":
+                            st.download_button(
+                                "Apri PDF",
+                                f,
+                                file_name=row["file"]
+                            )
 
-                    path = f"{MEDIA}/{row['file']}"
+                    else:
 
-                    if os.path.exists(path):
+                        st.image(path)
 
-                        if path.lower().endswith(".pdf"):
+            st.markdown("</div>",unsafe_allow_html=True)
 
-                            with open(path,"rb") as f:
-
-                                st.download_button(
-                                    "Apri PDF",
-                                    f,
-                                    file_name=row["file"]
-                                )
-
-                        else:
-
-                            st.image(path)
-
-                st.markdown('</div>', unsafe_allow_html=True)
-
-                log_open(pdv_id, pdv_nome, row["msg_id"])
+            log_open(pdv_id,pdv_nome,row["msg_id"])
 
     if st.checkbox("Spunta la CONFERMA DI LETTURA"):
 
-        if not msgs.empty:
+        for m in msgs["msg_id"]:
+            log_read(pdv_id,m)
 
-            for m in msgs["msg_id"]:
-                log_read(pdv_id, m)
 
-    col1, col2 = st.columns(2)
-
-    if col1.button("TORNA ALLA LISTA PDV"):
-        st.session_state.page = "emp1"
-        st.rerun()
-
-    if col2.button("HOME"):
-        st.markdown("[HOME](https://eu.jotform.com/app/253605296903360)")
-
-# ---------------------------------------------------
+# ---------------------------
 # ADMIN LOGIN
-# ---------------------------------------------------
+# ---------------------------
 
 def admin_login():
 
@@ -348,50 +290,48 @@ def admin_login():
         if pwd==ADMIN_PASSWORD:
 
             st.session_state.admin=True
-            st.session_state.page="admin1"
+            st.session_state.page="admin_msg"
+
             st.rerun()
 
 
-# ---------------------------------------------------
-# ADMIN PAGE
-# ---------------------------------------------------
+# ---------------------------
+# ADMIN MENU
+# ---------------------------
 
-def admin_page():
+def admin_menu():
 
-    st.title("AMMINISTRAZIONE")
+    col1,col2,col3,col4=st.columns(4)
 
-    col1,col2,col3=st.columns(3)
-
-    if col1.button("AGGIORNA"):
+    if col1.button("MESSAGGI"):
+        st.session_state.page="admin_msg"
         st.rerun()
 
     if col2.button("REPORT"):
-        st.session_state.page="admin2"
+        st.session_state.page="admin_rep"
         st.rerun()
 
-    if col3.button("LOGOUT"):
+    if col3.button("AGGIORNA"):
+        st.rerun()
+
+    if col4.button("LOGOUT"):
         st.session_state.clear()
         st.rerun()
 
-    st.subheader("LISTA PDV")
 
-    pdv=load_pdv()
+# ---------------------------
+# ADMIN MESSAGGI
+# ---------------------------
 
-    txt=st.text_area("Incolla lista",pdv.to_csv(index=False),height=200)
+def admin_messages():
 
-    if st.button("SALVA LISTA"):
-
-        from io import StringIO
-
-        df=pd.read_csv(StringIO(txt))
-
-        save_pdv(df)
+    admin_menu()
 
     st.subheader("NUOVO MESSAGGIO")
 
     titolo=st.text_input("Titolo")
 
-    msg=st.text_area("Messaggio (Markdown)")
+    msg=st.text_area("Messaggio (Markdown supportato)",height=200)
 
     pdv_ids=st.text_area("ID PDV destinatari")
 
@@ -424,8 +364,7 @@ def admin_page():
             "pdv_ids":ids,
             "file":fname,
             "data_inizio":d1,
-            "data_fine":d2,
-            "stato":"attivo"
+            "data_fine":d2
         }])
 
         msgs=pd.concat([msgs,new],ignore_index=True)
@@ -433,28 +372,19 @@ def admin_page():
         save_msgs(msgs)
 
 
-# ---------------------------------------------------
-# REPORT
-# ---------------------------------------------------
+# ---------------------------
+# ADMIN REPORT
+# ---------------------------
 
 def admin_report():
 
-    st.title("REPORT")
-
-    msgs = load_msgs()
-    logs = load_logs()
+    admin_menu()
 
     st.subheader("MESSAGGI")
 
-    msgs["seleziona"] = False
+    msgs=load_msgs()
 
-    edited = st.data_editor(msgs)
-
-    if st.button("ELIMINA SELEZIONATI"):
-
-        new = edited[edited.seleziona == False]
-
-        save_msgs(new.drop(columns=["seleziona"]))
+    st.dataframe(msgs)
 
     st.download_button(
         "Scarica CSV",
@@ -462,8 +392,8 @@ def admin_report():
         "messaggi.csv"
     )
 
-    buffer = BytesIO()
-    msgs.to_excel(buffer, index=False)
+    buffer=BytesIO()
+    msgs.to_excel(buffer,index=False)
     buffer.seek(0)
 
     st.download_button(
@@ -474,15 +404,9 @@ def admin_report():
 
     st.subheader("LOG")
 
-    logs["seleziona"] = False
+    logs=load_logs()
 
-    edited = st.data_editor(logs)
-
-    if st.button("ELIMINA LOG"):
-
-        new = edited[edited.seleziona == False]
-
-        save_logs(new.drop(columns=["seleziona"]))
+    st.dataframe(logs)
 
     st.download_button(
         "Scarica CSV",
@@ -490,8 +414,8 @@ def admin_report():
         "log.csv"
     )
 
-    buffer = BytesIO()
-    logs.to_excel(buffer, index=False)
+    buffer=BytesIO()
+    logs.to_excel(buffer,index=False)
     buffer.seek(0)
 
     st.download_button(
@@ -500,14 +424,10 @@ def admin_report():
         "log.xlsx"
     )
 
-    if st.button("TORNA ADMIN"):
 
-        st.session_state.page = "admin1"
-        st.rerun()
-
-# ---------------------------------------------------
+# ---------------------------
 # MAIN
-# ---------------------------------------------------
+# ---------------------------
 
 def main():
 
@@ -525,8 +445,8 @@ def main():
 
     if st.session_state.get("admin"):
 
-        if st.session_state.page=="admin1":
-            admin_page()
+        if st.session_state.page=="admin_msg":
+            admin_messages()
 
         else:
             admin_report()
@@ -542,13 +462,3 @@ def main():
 
 if __name__=="__main__":
     main()
-
-
-
-
-
-
-
-
-
-
