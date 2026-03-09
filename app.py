@@ -229,7 +229,7 @@ def active_msgs(pdv_id):
 
     def valid(r):
 
-        ids=str(r.pdv_ids).split("|")
+        ids=str(r.pdv_ids or"").split("|")
 
         if str(pdv_id) not in ids:
             return False
@@ -526,6 +526,7 @@ def main():
 
 if __name__=="__main__":
     main()
+
 
 
 
