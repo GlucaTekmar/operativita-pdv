@@ -252,93 +252,85 @@ def employee_msgs():
     pdv_id = st.session_state["pdv_id"]
     pdv_nome = st.session_state["pdv_nome"]
 
-    st.image(LOGO,width=180)
+    st.image(LOGO, width=180)
     st.title("INDICAZIONI OPERATIVE")
 
     msgs = active_msgs(pdv_id)
 
-    col_left, col_center, col_right = st.columns([1,3,1])
+    col1, col2, col3 = st.columns([1,3,1])
 
-    with col_center:
+    with col2:
 
         if msgs.empty:
 
-            container = st.container()
+            st.markdown('<div class="a4">', unsafe_allow_html=True)
 
-            with container:
+            st.subheader("NESSUNA ATTIVITÀ")
 
-                col_logo,col_data = st.columns([4,1])
-                col_logo.image(LOGO,width=120)
-                col_data.write(datetime.date.today())
-
-                st.divider()
-
-                st.subheader("NESSUNA ATTIVITÀ")
-
-                st.markdown("""
+            st.markdown("""
 QUESTA MATTINA SUL PDV NON SONO PREVISTE PROMO - ATTIVITÀ PARTICOLARI.
 
 **BUON LAVORO**
 """)
 
-            log_open(pdv_id,pdv_nome,"GENERICO")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+            log_open(pdv_id, pdv_nome, "GENERICO")
 
         else:
 
-            for _,row in msgs.iterrows():
+            for _, row in msgs.iterrows():
 
-                container = st.container()
+                st.markdown('<div class="a4">', unsafe_allow_html=True)
 
-                with container:
+                col_logo, col_data = st.columns([4,1])
+                col_logo.image(LOGO, width=120)
+                col_data.write(datetime.date.today())
 
-                    col_logo,col_data = st.columns([4,1])
-                    col_logo.image(LOGO,width=120)
-                    col_data.write(datetime.date.today())
+                st.divider()
 
-                    st.divider()
+                st.subheader(row["titolo"])
 
-                    st.subheader(row["titolo"])
+                st.markdown(row["msg"])
 
-                    st.markdown(row["msg"])
+                if pd.notna(row["file"]) and row["file"] != "":
 
-                    if pd.notna(row["file"]) and row["file"] != "":
+                    path = f"{MEDIA}/{row['file']}"
 
-                        path = f"{MEDIA}/{row['file']}"
+                    if os.path.exists(path):
 
-                        if os.path.exists(path):
+                        if path.lower().endswith(".pdf"):
 
-                            if path.lower().endswith(".pdf"):
+                            with open(path,"rb") as f:
 
-                                with open(path,"rb") as f:
-                                    st.download_button(
-                                        "Apri PDF",
-                                        f,
-                                        file_name=row["file"]
-                                    )
+                                st.download_button(
+                                    "Apri PDF",
+                                    f,
+                                    file_name=row["file"]
+                                )
 
-                            else:
+                        else:
 
-                                st.image(path)
+                            st.image(path)
 
-                log_open(pdv_id,pdv_nome,row["msg_id"])
+                st.markdown('</div>', unsafe_allow_html=True)
 
-    st.write("")
+                log_open(pdv_id, pdv_nome, row["msg_id"])
 
     if st.checkbox("Spunta la CONFERMA DI LETTURA"):
 
         if not msgs.empty:
-            for m in msgs["msg_id"]:
-                log_read(pdv_id,m)
 
-    col1,col2 = st.columns(2)
+            for m in msgs["msg_id"]:
+                log_read(pdv_id, m)
+
+    col1, col2 = st.columns(2)
 
     if col1.button("TORNA ALLA LISTA PDV"):
-
-        st.session_state.page="emp1"
+        st.session_state.page = "emp1"
         st.rerun()
 
     if col2.button("HOME"):
-
         st.markdown("[HOME](https://eu.jotform.com/app/253605296903360)")
 
 # ---------------------------------------------------
@@ -449,62 +441,69 @@ def admin_report():
 
     st.title("REPORT")
 
-    msgs=load_msgs()
-    logs=load_logs()
+    msgs = load_msgs()
+    logs = load_logs()
 
     st.subheader("MESSAGGI")
 
-    msgs["seleziona"]=False
+    msgs["seleziona"] = False
 
-    edited=st.data_editor(msgs)
+    edited = st.data_editor(msgs)
 
     if st.button("ELIMINA SELEZIONATI"):
 
-        new=edited[edited.seleziona==False]
+        new = edited[edited.seleziona == False]
 
         save_msgs(new.drop(columns=["seleziona"]))
 
-    st.download_button("Scarica CSV",msgs.to_csv(index=False),"messaggi.csv")  
+    st.download_button(
+        "Scarica CSV",
+        msgs.to_csv(index=False),
+        "messaggi.csv"
+    )
 
     buffer = BytesIO()
     msgs.to_excel(buffer, index=False)
     buffer.seek(0)
 
     st.download_button(
-    "Scarica Excel",
-    buffer,
-    "messaggi.xlsx"
+        "Scarica Excel",
+        buffer,
+        "messaggi.xlsx"
     )
 
-        st.subheader("LOG")
+    st.subheader("LOG")
 
-    logs["seleziona"]=False
+    logs["seleziona"] = False
 
-    edited=st.data_editor(logs)
+    edited = st.data_editor(logs)
 
     if st.button("ELIMINA LOG"):
 
-        new=edited[edited.seleziona==False]
+        new = edited[edited.seleziona == False]
 
         save_logs(new.drop(columns=["seleziona"]))
 
-    st.download_button("Scarica CSV",logs.to_csv(index=False),"log.csv")
+    st.download_button(
+        "Scarica CSV",
+        logs.to_csv(index=False),
+        "log.csv"
+    )
 
-buffer = BytesIO()
-logs.to_excel(buffer, index=False)
-buffer.seek(0)
+    buffer = BytesIO()
+    logs.to_excel(buffer, index=False)
+    buffer.seek(0)
 
-st.download_button(
-    "Scarica Excel",
-    buffer,
-    "log.xlsx"
-)
+    st.download_button(
+        "Scarica Excel",
+        buffer,
+        "log.xlsx"
+    )
 
     if st.button("TORNA ADMIN"):
 
-        st.session_state.page="admin1"
+        st.session_state.page = "admin1"
         st.rerun()
-
 
 # ---------------------------------------------------
 # MAIN
@@ -543,6 +542,7 @@ def main():
 
 if __name__=="__main__":
     main()
+
 
 
 
