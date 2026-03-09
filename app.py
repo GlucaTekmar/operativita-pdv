@@ -340,7 +340,7 @@ def admin():
         st.header("IMPORTA LISTA PDV")
 
         pdv_existing = load_csv(PDV_FILE, ["pdv_id", "pdv_nome"])
-        prefill = "\n".join([f"{r['ID']};{r['PDV']}" for _, r in pdv_existing.iterrows()])
+        prefill = "\n".join([f"{r['pdv_id']};{r['pdv_nome']}" for _, r in pdv_existing.iterrows()])
         pdv_text = st.text_area("", value=prefill, height=140)
 
         c1, c2 = st.columns(2)
@@ -352,7 +352,7 @@ def admin():
                     if ";" in line:
                         a, b = line.split(";", 1)
                         rows.append([a.strip(), b.strip()])
-                save_csv(pd.DataFrame(rows, columns=["ID", "PDV"]), PDV_FILE)
+                save_csv(pd.DataFrame(rows, columns=["pdv_id", "pdv_nome"]), PDV_FILE)
                 st.success("Lista PDV salvata")
 
         with c2:
@@ -716,6 +716,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
