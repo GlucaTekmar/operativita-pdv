@@ -576,7 +576,7 @@ def dipendenti():
         st.warning("Archivio PDV vuoto")
         return
 
-    scelta = st.selectbox("", pdv_df["PDV"], index=None, placeholder="Digita la città...")
+    scelta = st.selectbox("", pdv_df["pdv_nome"], index=None, placeholder="Digita la città...")
 
     st.markdown(
         "<p style='text-align:center;'><b>"
@@ -716,6 +716,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
