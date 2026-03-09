@@ -426,7 +426,7 @@ def admin():
             view.insert(0, "N°", range(1, len(view) + 1))
             view["MESSAGGIO"] = view["msg"].apply(first_line_title)
             view["STATO"] = view.apply(lambda r: stato_msg(r["inizio"], r["fine"]), axis=1)
-            view = view[["N°", "MESSAGGIO", "inizio", "fine", "STATO", "pdv_ids"]]
+            view = view[["N°", "MESSAGGIO", "inizio", "fine", "STATO"]]
 
         st.dataframe(msg_df)
 
@@ -716,6 +716,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
