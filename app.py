@@ -464,16 +464,16 @@ def admin_report():
 
         save_msgs(new.drop(columns=["seleziona"]))
 
-        st.download_button("Scarica CSV",msgs.to_csv(index=False),"messaggi.csv")  
+    st.download_button("Scarica CSV",msgs.to_csv(index=False),"messaggi.csv")  
 
     buffer = BytesIO()
     msgs.to_excel(buffer, index=False)
     buffer.seek(0)
 
     st.download_button(
-        "Scarica Excel",
-        buffer,
-        "messaggi.xlsx"
+    "Scarica Excel",
+    buffer,
+    "messaggi.xlsx"
     )
 
         st.subheader("LOG")
@@ -543,6 +543,7 @@ def main():
 
 if __name__=="__main__":
     main()
+
 
 
 
