@@ -1,8 +1,8 @@
-streamlit==1.36.0
-pandas==2.2.2
+streamlit==1.32.2
+pandas==2.2.1
 openpyxl==3.1.2
-filelock==3.13.1
-streamlit-searchbox==0.1.6
+streamlit-quill==0.0.3
+
 
 
 
