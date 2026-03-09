@@ -588,7 +588,7 @@ def dipendenti():
     if not scelta:
         return
 
-    pdv_id = pdv_df.loc[pdv_df["PDV"] == scelta, "ID"].values[0]
+    pdv_id = pdv_df.loc[pdv_df["pdv_nome"] == scelta, "pdv_id"].values[0]
     pdv_id = str(pdv_id).strip()
 
     msg_df = load_csv(MSG_FILE, ["msg", "inizio", "fine", "pdv_ids", "file"])
@@ -716,6 +716,7 @@ if st.query_params.get("admin") == "1":
     admin()
 else:
     dipendenti()
+
 
 
 
